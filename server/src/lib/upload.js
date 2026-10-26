@@ -20,6 +20,8 @@ function makeUploader(subdir, mimes, maxBytes, maxFiles) {
       filename: (req, file, cb) => cb(null, randomBytes(16).toString('hex') + EXT[file.mimetype]),
     }),
     limits: { fileSize: maxBytes, files: maxFiles },
+    // Browsers send filenames as raw UTF-8; multer's latin1 default would mangle accents.
+    defParamCharset: 'utf8',
     fileFilter: (req, file, cb) => {
       if (mimes.includes(file.mimetype)) return cb(null, true);
       cb(new AppError(415, 'TYPE_FICHIER', `Type de fichier non accepté (${mimes.map((m) => EXT[m].slice(1).toUpperCase()).join(', ')}).`));

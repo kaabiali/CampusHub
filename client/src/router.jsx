@@ -16,6 +16,8 @@ import Livres from '@/pages/livres/Livres';
 import LivreDetail from '@/pages/livres/LivreDetail';
 import Covoiturage from '@/pages/covoiturage/Covoiturage';
 import TrajetDetail from '@/pages/covoiturage/TrajetDetail';
+import Groupes from '@/pages/groupes/Groupes';
+import GroupeDetail from '@/pages/groupes/GroupeDetail';
 import NotFound from '@/pages/NotFound';
 import RouteError from '@/pages/RouteError';
 
@@ -63,6 +65,8 @@ export const router = createBrowserRouter([
           { path: 'livres/:id', element: <LivreDetail /> },
           { path: 'covoiturage', element: <Covoiturage /> },
           { path: 'covoiturage/:id', element: <TrajetDetail /> },
+          { path: 'groupes', element: <Groupes /> },
+          { path: 'groupes/:id', element: <GroupeDetail /> },
         ],
       },
       { path: '*', element: <NotFound /> },
