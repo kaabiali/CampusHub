@@ -1,6 +1,7 @@
 import { schedule } from 'node-cron';
 import { Ride } from '../models/Ride.js';
 import { logger } from '../lib/logger.js';
+import { sendEventReminders } from './reminders.js';
 
 const RIDE_DONE_AFTER_MS = 3 * 3600 * 1000;
 
@@ -12,7 +13,10 @@ export async function closePastRides(now = new Date()) {
   return modifiedCount;
 }
 
-const jobs = [{ name: 'close-past-rides', run: closePastRides }];
+const jobs = [
+  { name: 'close-past-rides', run: closePastRides },
+  { name: 'event-reminders', run: sendEventReminders },
+];
 
 export function startScheduler() {
   for (const job of jobs) {

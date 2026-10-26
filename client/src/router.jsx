@@ -18,6 +18,8 @@ import Covoiturage from '@/pages/covoiturage/Covoiturage';
 import TrajetDetail from '@/pages/covoiturage/TrajetDetail';
 import Groupes from '@/pages/groupes/Groupes';
 import GroupeDetail from '@/pages/groupes/GroupeDetail';
+import Evenements from '@/pages/evenements/Evenements';
+import EvenementDetail from '@/pages/evenements/EvenementDetail';
 import NotFound from '@/pages/NotFound';
 import RouteError from '@/pages/RouteError';
 
@@ -67,6 +69,8 @@ export const router = createBrowserRouter([
           { path: 'covoiturage/:id', element: <TrajetDetail /> },
           { path: 'groupes', element: <Groupes /> },
           { path: 'groupes/:id', element: <GroupeDetail /> },
+          { path: 'evenements', element: <Evenements /> },
+          { path: 'evenements/:id', element: <EvenementDetail /> },
         ],
       },
       { path: '*', element: <NotFound /> },

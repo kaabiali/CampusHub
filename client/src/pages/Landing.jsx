@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, CalendarDays, CarFront, MessageCircle, Sparkles, 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
 import { PriceEstimator } from '@/components/landing/PriceEstimator';
+import { PublicEvents } from '@/components/landing/PublicEvents';
 
 const COVERS = [
   { t: 'ANALYSE 1', c: '#1e2a4a' },
@@ -216,6 +217,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <PublicEvents />
 
       <section className="mx-auto max-w-[1200px] px-4 py-20 sm:px-6">
         <div className="relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-xl bg-[#2547d0] p-8 text-white sm:p-12 md:flex-row md:items-center">

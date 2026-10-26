@@ -9,6 +9,7 @@ import { useAuth } from '@/providers/AuthProvider';
 const links = [
   { href: '/#modules', label: 'Fonctionnalités' },
   { href: '/#donnees', label: 'Données' },
+  { href: '/#evenements', label: 'Événements' },
 ];
 
 function AccountActions({ onNavigate, stacked }) {

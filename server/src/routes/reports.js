@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { Report, TYPES_CONTENU } from '../models/Report.js';
 import { Book } from '../models/Book.js';
 import { Ride } from '../models/Ride.js';
+import { Event } from '../models/Event.js';
 import { requireAuth } from '../lib/auth.js';
 import { validate } from '../lib/validate.js';
 import { badRequest, notFound } from '../lib/errors.js';
@@ -13,6 +14,7 @@ export const reportsRouter = Router();
 export const REPORTABLE = {
   ANNONCE: { model: Book, auteur: 'vendeur' },
   TRAJET: { model: Ride, auteur: 'conducteur' },
+  EVENEMENT: { model: Event, auteur: 'organisateur' },
 };
 
 reportsRouter.post(

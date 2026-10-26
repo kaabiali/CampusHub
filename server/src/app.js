@@ -13,6 +13,8 @@ import { categoriesRouter } from './routes/categories.js';
 import { reportsRouter } from './routes/reports.js';
 import { reservationsRouter, ridesRouter } from './routes/rides.js';
 import { groupsRouter } from './routes/groups.js';
+import { clubsRouter } from './routes/clubs.js';
+import { eventsRouter } from './routes/events.js';
 
 export function createApp() {
   const app = express();
@@ -40,6 +42,8 @@ export function createApp() {
   app.use('/api/trajets', ridesRouter);
   app.use('/api/reservations', reservationsRouter);
   app.use('/api/groupes', groupsRouter);
+  app.use('/api/clubs', clubsRouter);
+  app.use('/api/evenements', eventsRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);
