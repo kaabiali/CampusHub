@@ -9,6 +9,7 @@ import { validate } from '../lib/validate.js';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
 import { tunisDay, formatDateFr } from '../lib/time.js';
 import { notify } from '../lib/notify.js';
+import { invalidateRecommendations } from '../lib/recommend.js';
 
 export const eventsRouter = Router();
 
@@ -145,6 +146,7 @@ eventsRouter.post('/:id/inscription', requireAuth(), validate(param('id').isMong
     }
     return updated;
   });
+  invalidateRecommendations(req.user._id);
   res.status(201).json({ evenement: { _id: event._id, nbInscrits: event.nbInscrits, estInscrit: true } });
 });
 

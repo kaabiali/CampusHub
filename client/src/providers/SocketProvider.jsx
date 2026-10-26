@@ -59,6 +59,7 @@ export function SocketProvider({ children }) {
       const other = otherParty(message, me);
       queryClient.setQueryData(['thread', other], (t) => mergeMessage(t, message));
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['accueil'] });
       const incoming = String(message.expediteur) !== me;
       if (!incoming) return;
       setTyping((t) => ({ ...t, [other]: false }));
@@ -80,6 +81,7 @@ export function SocketProvider({ children }) {
 
     s.on('notification:new', (n) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['accueil'] });
       if (n.type === 'RESERVATION') {
         for (const key of ['trajets', 'trajet', 'mes-trajets']) queryClient.invalidateQueries({ queryKey: [key] });
       }

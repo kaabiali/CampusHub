@@ -7,6 +7,7 @@ import { requireAuth } from '../lib/auth.js';
 import { validate } from '../lib/validate.js';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
 import { searchFilter } from '../lib/text.js';
+import { invalidateRecommendations } from '../lib/recommend.js';
 import { pdfUpload, publicUrl, removeUpload, uploadsRoot } from '../lib/upload.js';
 
 export const groupsRouter = Router();
@@ -125,6 +126,7 @@ groupsRouter.post('/:id/membres', requireAuth(), validate(param('id').isMongoId(
     if (isMember(group, req.user._id)) throw conflict('DEJA_MEMBRE', 'Vous êtes déjà membre de ce groupe.');
     throw conflict('GROUPE_COMPLET', 'Ce groupe est complet.');
   }
+  invalidateRecommendations(req.user._id);
   res.status(201).json({ groupe: summarize(updated, req.user._id) });
 });
 

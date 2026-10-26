@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Plus, Search, SearchX, UsersRound } from 'lucide-react';
+import { Plus, Search, SearchX, Sparkles, UsersRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/PageHeader';
@@ -13,12 +13,13 @@ import { useDebounced } from '@/hooks/useDebounced';
 import { useJoinGroup } from '@/hooks/useJoinGroup';
 import { get } from '@/lib/api';
 import { plural } from '@/lib/format';
+import { useAuth } from '@/providers/AuthProvider';
 
 const grid = 'grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4';
 
 export default function Groupes() {
   const [params, setParams] = useSearchParams();
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(() => params.get('creer') === '1');
   const [q, setQ] = useState(params.get('q') || '');
   const debouncedQ = useDebounced(q, 300);
   const page = Number(params.get('page')) || 1;
@@ -29,7 +30,10 @@ export default function Groupes() {
     setParams(debouncedQ.trim() ? { q: debouncedQ.trim() } : {}, { replace: true });
   }, [debouncedQ]);
 
+  const { user } = useAuth();
   const mine = useQuery({ queryKey: ['groupes', 'mes-groupes'], queryFn: () => get('/groupes/mes-groupes') });
+  const reco = useQuery({ queryKey: ['recommandations', user.matieres, user.centresInteret], queryFn: () => get('/recommandations'), staleTime: 5 * 60_000 });
+  const recommended = (reco.data?.groupes ?? []).map((g) => ({ ...g, estMembre: false }));
   const filters = { q: params.get('q') || undefined, page, limit: 12 };
   const explore = useQuery({ queryKey: ['groupes', 'explorer', filters], queryFn: () => get('/groupes', filters), placeholderData: keepPreviousData });
 
@@ -61,6 +65,22 @@ export default function Groupes() {
         )}
       </section>
 
+      {recommended.length > 0 && (
+        <section className="flex flex-col gap-3 rounded-lg bg-primary-soft/60 p-4 sm:p-5" aria-labelledby="recommandes">
+          <h2 id="recommandes" className="flex items-center gap-2 font-semibold">
+            <Sparkles className="size-4 text-primary" /> Recommandés pour vous
+          </h2>
+          <div className={grid}>
+            {recommended.map((g) => (
+              <div key={g._id} className="flex flex-col gap-1.5">
+                <GroupCard group={g} onJoin={() => join.mutate(g._id, { onSuccess: () => reco.refetch() })} joining={join.isPending && join.variables === g._id} />
+                <p className="px-1 text-xs text-primary-soft-foreground">{g.raison}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="flex flex-col gap-3" aria-labelledby="explorer">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="explorer" className="font-semibold">
@@ -91,7 +111,7 @@ export default function Groupes() {
         )}
         {explore.data && <Pagination page={explore.data.page} pages={explore.data.pages} onChange={(p) => setParams((prev) => { const n = new URLSearchParams(prev); n.set('page', p); return n; })} />}
       </section>
-      <GroupFormSheet open={creating} onOpenChange={setCreating} />
+      <GroupFormSheet open={creating} onOpenChange={(o) => { setCreating(o); if (!o && params.has('creer')) setParams((prev) => { const n = new URLSearchParams(prev); n.delete('creer'); return n; }, { replace: true }); }} />
     </>
   );
 }

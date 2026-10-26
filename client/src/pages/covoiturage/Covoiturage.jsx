@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { CarFront, Plus, Route, SearchX, Star } from 'lucide-react';
@@ -147,6 +147,10 @@ export default function Covoiturage() {
   const mine = params.get('vue') === 'mes-trajets';
   const formRef = useRef(null);
   const firstFieldRef = useRef(null);
+
+  useEffect(() => {
+    if (params.get('proposer') === '1') focusForm();
+  }, []);
 
   const focusForm = () => {
     if (mine) setParams({});

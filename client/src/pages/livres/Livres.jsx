@@ -22,7 +22,7 @@ const SORT_LABELS = { recent: 'Plus récentes', prix_asc: 'Prix croissant', prix
 
 export default function Livres() {
   const [params, setParams] = useSearchParams();
-  const [publishing, setPublishing] = useState(false);
+  const [publishing, setPublishing] = useState(() => params.get('publier') === '1');
   const [q, setQ] = useState(params.get('q') || '');
   const debouncedQ = useDebounced(q, 300);
 
@@ -172,7 +172,7 @@ export default function Livres() {
       )}
 
       {data && <Pagination page={data.page} pages={data.pages} onChange={(p) => update({ page: p }, { keepPage: true })} />}
-      <BookFormSheet open={publishing} onOpenChange={setPublishing} />
+      <BookFormSheet open={publishing} onOpenChange={(o) => { setPublishing(o); if (!o && params.has('publier')) setParams((prev) => { const n = new URLSearchParams(prev); n.delete('publier'); return n; }, { replace: true }); }} />
     </>
   );
 }

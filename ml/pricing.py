@@ -1,7 +1,6 @@
 """Book price model: synthetic data generation, training with baselines, and inference."""
 import json
 import os
-import unicodedata
 from datetime import date
 from pathlib import Path
 
@@ -15,6 +14,9 @@ from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+
+from recommend import evaluate as evaluate_recommendations
+from text import fold
 
 MODELS_DIR = Path(os.environ.get("MODELS_DIR", Path(__file__).parent / "models"))
 MODEL_PATH = MODELS_DIR / "price_model.joblib"
@@ -31,11 +33,6 @@ SUBJECT_DEMAND = {
 }
 CONDITION = {"NEUF": 0.8, "TRES_BON": 0.64, "BON": 0.5, "ACCEPTABLE": 0.33}
 FEATURES = ["matiere", "etat_rank", "age", "prix_neuf"]
-
-
-def fold(text: str) -> str:
-    text = unicodedata.normalize("NFD", str(text or ""))
-    return "".join(c for c in text if unicodedata.category(c) != "Mn").lower().strip()
 
 
 def make_synthetic(n: int = 2400, seed: int = 42) -> pd.DataFrame:
@@ -115,6 +112,7 @@ def train(save: bool = True, seed: int = 42) -> dict:
         "regression_lineaire": score(linear.predict(X_test)),
         "random_forest": score(forest.predict(X_test)),
     }
+    metrics["recommandation"] = evaluate_recommendations()
     if save:
         MODELS_DIR.mkdir(parents=True, exist_ok=True)
         joblib.dump(forest, MODEL_PATH)
