@@ -1,0 +1,128 @@
+import { useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router';
+import { Menu, Search } from 'lucide-react';
+import { Brand } from '@/components/Brand';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
+import { ADMIN_NAV, NAV } from '@/lib/nav';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/AuthProvider';
+import { CommandPalette } from './CommandPalette';
+import { UserMenu } from './UserMenu';
+
+function NavItem({ item, onNavigate }) {
+  return (
+    <NavLink
+      to={item.to}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm font-medium text-foreground-2 transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring',
+          isActive && 'bg-primary-soft font-semibold text-primary-soft-foreground hover:bg-primary-soft hover:text-primary-soft-foreground',
+        )
+      }
+    >
+      <item.icon className="size-[18px]" strokeWidth={1.75} />
+      <span className="flex-1">{item.label}</span>
+      {item.badge > 0 && <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular">{item.badge > 99 ? '99+' : item.badge}</span>}
+    </NavLink>
+  );
+}
+
+function SidebarContent({ onNavigate }) {
+  const { user } = useAuth();
+  const adminItems = user?.role === 'ADMIN' ? ADMIN_NAV : [];
+  return (
+    <div className="flex h-full flex-col gap-6 px-3 py-5">
+      <Brand to="/accueil" className="px-2" />
+      <nav aria-label="Navigation principale" className="flex flex-1 flex-col gap-0.5">
+        {NAV.map((item) => (
+          <NavItem key={item.to} item={item} onNavigate={onNavigate} />
+        ))}
+        {adminItems.length > 0 && (
+          <>
+            <p className="mt-5 mb-1 px-2.5 text-xs font-medium text-muted-foreground">Administration</p>
+            {adminItems.map((item) => (
+              <NavItem key={item.to} item={item} onNavigate={onNavigate} />
+            ))}
+          </>
+        )}
+      </nav>
+      <div className="border-t pt-3">
+        <UserMenu />
+      </div>
+    </div>
+  );
+}
+
+export function AppShell() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  return (
+    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+      <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:shadow-md">
+        Aller au contenu
+      </a>
+      <aside className="sticky top-0 hidden h-dvh border-r bg-card lg:block">
+        <SidebarContent />
+      </aside>
+
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <SheetDescription className="sr-only">Navigation principale</SheetDescription>
+          <SidebarContent onNavigate={() => setMobileOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex min-w-0 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-md sm:px-6 lg:px-10">
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Ouvrir le menu">
+            <Menu />
+          </Button>
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="flex h-9 w-full max-w-sm items-center gap-2 rounded-md border border-input bg-card px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-ring/50 focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <Search className="size-4" />
+            <span className="flex-1 truncate text-left">Rechercher, aller à…</span>
+            <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[11px] sm:inline">Ctrl K</kbd>
+          </button>
+        </header>
+        <main id="contenu" key={pathname} className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pt-6 pb-16 animate-fade-up sm:px-6 lg:px-10 lg:pt-8">
+          <Outlet />
+        </main>
+      </div>
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+    </div>
+  );
+}
+
+export function AppShellSkeleton() {
+  return (
+    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]" aria-busy="true" aria-label="Chargement">
+      <aside className="hidden h-dvh flex-col gap-6 border-r bg-card px-5 py-5 lg:flex">
+        <div className="h-8 w-36 rounded-md bg-muted animate-pulse" />
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="h-9 rounded-md bg-muted/70 animate-pulse" />
+          ))}
+        </div>
+      </aside>
+      <div className="flex flex-col">
+        <div className="h-14 border-b" />
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pt-8 sm:px-6 lg:px-10">
+          <div className="h-8 w-64 rounded-md bg-muted animate-pulse" />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="h-28 rounded-lg bg-muted/70 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,167 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Palette carried over from the mockup (assets/style.css) onto shadcn's variable names. */
+:root {
+  --radius: 0.5rem;
+  --background: #f6f7f9;
+  --foreground: #14171c;
+  --foreground-2: #3d4450;
+  --card: #ffffff;
+  --card-foreground: #14171c;
+  --popover: #ffffff;
+  --popover-foreground: #14171c;
+  --primary: #2547d0;
+  --primary-hover: #1a36a6;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e9eefc;
+  --primary-soft-foreground: #1a36a6;
+  --secondary: #f0f2f5;
+  --secondary-foreground: #14171c;
+  --muted: #f0f2f5;
+  --muted-foreground: #5b6370;
+  --accent: #eef0f3;
+  --accent-foreground: #14171c;
+  --destructive: #b42318;
+  --destructive-soft: #fceceb;
+  --success: #1f7a4d;
+  --success-soft: #e3f3ea;
+  --warning: #9a4a0b;
+  --warning-soft: #fdf3e1;
+  --border: #e3e6eb;
+  --input: #cdd2da;
+  --ring: #2547d0;
+  --chart-1: #2547d0;
+  --chart-2: #a9bbf2;
+  --chart-3: #1f7a4d;
+  --chart-4: #c27a1a;
+  --chart-5: #7a3b2e;
+  --shadow-color: 220 20% 10%;
+}
+
+.dark {
+  --background: #0e1014;
+  --foreground: #eceef2;
+  --foreground-2: #c4cad4;
+  --card: #171a20;
+  --card-foreground: #eceef2;
+  --popover: #1b1f26;
+  --popover-foreground: #eceef2;
+  --primary: #5574f0;
+  --primary-hover: #6a87f5;
+  --primary-foreground: #ffffff;
+  --primary-soft: #1d2747;
+  --primary-soft-foreground: #afc0ff;
+  --secondary: #222731;
+  --secondary-foreground: #eceef2;
+  --muted: #1e222a;
+  --muted-foreground: #9aa2ae;
+  --accent: #222731;
+  --accent-foreground: #eceef2;
+  --destructive: #e5584b;
+  --destructive-soft: #3a1d1b;
+  --success: #6fcf9c;
+  --success-soft: #14301f;
+  --warning: #f0a35e;
+  --warning-soft: #3a2b14;
+  --border: #2a2f38;
+  --input: #3a404b;
+  --ring: #6a87f5;
+  --chart-1: #6a87f5;
+  --chart-2: #33427a;
+  --chart-3: #6fcf9c;
+  --chart-4: #f0a35e;
+  --chart-5: #e08a74;
+  --shadow-color: 220 40% 2%;
+}
+
+@theme inline {
+  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-2: var(--foreground-2);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  /* Shadows tinted with the background hue instead of flat black. */
+  --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.05);
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 2px 6px hsl(var(--shadow-color) / 0.04);
+  --shadow-md: 0 2px 4px hsl(var(--shadow-color) / 0.06), 0 8px 20px hsl(var(--shadow-color) / 0.07);
+  --shadow-lg: 0 4px 10px hsl(var(--shadow-color) / 0.08), 0 20px 48px hsl(var(--shadow-color) / 0.14);
+  --animate-fade-up: fade-up 200ms ease-out both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--primary-soft-foreground);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
