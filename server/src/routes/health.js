@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { isDbUp } from '../db.js';
 import { config } from '../config.js';
+import { mlStats } from '../lib/pricing.js';
 
 export const healthRouter = Router();
 
@@ -16,5 +17,5 @@ async function pingMl() {
 healthRouter.get('/health', async (req, res) => {
   const db = isDbUp();
   const ml = await pingMl();
-  res.status(db ? 200 : 503).json({ ok: db, db, ml, uptime: Math.round(process.uptime()) });
+  res.status(db ? 200 : 503).json({ ok: db, db, ml, mlFallbackCount: mlStats.fallbackCount, uptime: Math.round(process.uptime()) });
 });

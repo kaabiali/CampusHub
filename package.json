@@ -11,6 +11,8 @@
     "services": "docker compose up -d --wait",
     "db:init": "docker compose exec mongo mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }\"",
     "test": "npm test -w server",
+    "ml:train": "docker compose exec ml python train.py && docker compose restart ml",
+    "ml:test": "docker compose run --rm --no-deps ml python -m pytest -q",
     "plan": "node scripts/plan-server.mjs"
   },
   "devDependencies": {
