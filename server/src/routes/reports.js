@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { Report, TYPES_CONTENU } from '../models/Report.js';
 import { Book } from '../models/Book.js';
+import { Ride } from '../models/Ride.js';
 import { requireAuth } from '../lib/auth.js';
 import { validate } from '../lib/validate.js';
 import { badRequest, notFound } from '../lib/errors.js';
@@ -11,6 +12,7 @@ export const reportsRouter = Router();
 // Each reportable type maps to its model and the field holding its author; modules register here.
 export const REPORTABLE = {
   ANNONCE: { model: Book, auteur: 'vendeur' },
+  TRAJET: { model: Ride, auteur: 'conducteur' },
 };
 
 reportsRouter.post(

@@ -4,9 +4,11 @@ import { connectDb } from './db.js';
 import { createApp } from './app.js';
 import { logger } from './lib/logger.js';
 import { ensureDefaultCategories } from './models/Category.js';
+import { startScheduler } from './jobs/scheduler.js';
 
 await connectDb(config.mongoUrl);
 await ensureDefaultCategories();
+startScheduler();
 
 const app = createApp();
 const server = createServer(app);

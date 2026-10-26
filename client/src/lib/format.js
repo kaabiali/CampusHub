@@ -17,6 +17,11 @@ export const isoDay = (d = new Date()) => fmtDateInput.format(new Date(d));
 
 export const capitalize = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
+// <input type="datetime-local"> has no time zone; values are read and written as Tunis time (UTC+1, no DST).
+export const toTunisInput = (d) => `${isoDay(d)}T${time(d)}`;
+export const fromTunisInput = (value) => new Date(`${value}:00+01:00`).toISOString();
+export const addMinutes = (d, m) => new Date(new Date(d).getTime() + m * 60_000);
+
 export function relative(d) {
   const diff = (Date.now() - new Date(d).getTime()) / 1000;
   if (diff < 60) return "À l'instant";

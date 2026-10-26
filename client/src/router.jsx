@@ -14,6 +14,8 @@ import Accueil from '@/pages/Accueil';
 import Profil from '@/pages/Profil';
 import Livres from '@/pages/livres/Livres';
 import LivreDetail from '@/pages/livres/LivreDetail';
+import Covoiturage from '@/pages/covoiturage/Covoiturage';
+import TrajetDetail from '@/pages/covoiturage/TrajetDetail';
 import NotFound from '@/pages/NotFound';
 import RouteError from '@/pages/RouteError';
 
@@ -59,6 +61,8 @@ export const router = createBrowserRouter([
           { path: 'profil', element: <Profil /> },
           { path: 'livres', element: <Livres /> },
           { path: 'livres/:id', element: <LivreDetail /> },
+          { path: 'covoiturage', element: <Covoiturage /> },
+          { path: 'covoiturage/:id', element: <TrajetDetail /> },
         ],
       },
       { path: '*', element: <NotFound /> },

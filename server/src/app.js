@@ -11,6 +11,7 @@ import { usersRouter } from './routes/users.js';
 import { booksRouter } from './routes/books.js';
 import { categoriesRouter } from './routes/categories.js';
 import { reportsRouter } from './routes/reports.js';
+import { reservationsRouter, ridesRouter } from './routes/rides.js';
 
 export function createApp() {
   const app = express();
@@ -33,6 +34,8 @@ export function createApp() {
   app.use('/api/annonces', booksRouter);
   app.use('/api/categories', categoriesRouter);
   app.use('/api/signalements', reportsRouter);
+  app.use('/api/trajets', ridesRouter);
+  app.use('/api/reservations', reservationsRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);

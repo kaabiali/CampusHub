@@ -12,3 +12,4 @@ test-results/
 playwright-report/
 visuals/*-decisions.json
 ml/models/metrics.json
+scripts/_probe*.mjs
