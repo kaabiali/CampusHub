@@ -4,7 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewSwitch } from '@/components/ViewSwitch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,12 +49,14 @@ export default function Moderation() {
   return (
     <>
       <PageHeader title="Modération" description="Contenus signalés par les étudiants. Les plus anciens en premier." />
-      <Tabs value={statut} onValueChange={(v) => setParams(v === 'EN_ATTENTE' ? {} : { statut: v })}>
-        <TabsList>
-          <TabsTrigger value="EN_ATTENTE">En attente</TabsTrigger>
-          <TabsTrigger value="TRAITES">Traités</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <ViewSwitch
+        label="Signalements affichés"
+        value={statut}
+        options={[
+          { value: 'EN_ATTENTE', label: 'En attente', to: '/admin/moderation' },
+          { value: 'TRAITES', label: 'Traités', to: '/admin/moderation?statut=TRAITES' },
+        ]}
+      />
       {isPending ? (
         <div className="h-64 rounded-lg bg-muted/70 animate-pulse" />
       ) : data.signalements.length === 0 ? (

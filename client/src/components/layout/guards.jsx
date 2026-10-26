@@ -1,6 +1,6 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router';
 import { useAuth } from '@/providers/AuthProvider';
-import { AppShellSkeleton } from './AppShell';
+import { AppShellSkeleton } from './AppShellSkeleton';
 
 const safeReturn = (value) => (value?.startsWith('/') && !value.startsWith('//') ? value : '/accueil');
 

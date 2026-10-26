@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewSwitch } from '@/components/ViewSwitch';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Pagination } from '@/components/Pagination';
@@ -79,12 +79,14 @@ export default function Livres() {
         </Button>
       </PageHeader>
 
-      <Tabs value={mine ? 'mine' : 'all'} onValueChange={(v) => update({ vue: v === 'mine' ? 'mes-annonces' : null })}>
-        <TabsList>
-          <TabsTrigger value="all">Toutes les annonces</TabsTrigger>
-          <TabsTrigger value="mine">Mes annonces</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <ViewSwitch
+        label="Annonces affichées"
+        value={mine ? 'mine' : 'all'}
+        options={[
+          { value: 'all', label: 'Toutes les annonces', to: '/livres' },
+          { value: 'mine', label: 'Mes annonces', to: '/livres?vue=mes-annonces' },
+        ]}
+      />
 
       <section aria-label="Filtres" className="grid gap-3 rounded-lg border bg-card p-4 shadow-xs md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_120px_minmax(0,1fr)]">
         <label className="relative">

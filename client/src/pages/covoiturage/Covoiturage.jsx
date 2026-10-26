@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { CarFront, Plus, Route, SearchX, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewSwitch } from '@/components/ViewSwitch';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Pagination } from '@/components/Pagination';
@@ -167,12 +167,14 @@ export default function Covoiturage() {
           <Plus /> Proposer un trajet
         </Button>
       </PageHeader>
-      <Tabs value={mine ? 'mine' : 'search'} onValueChange={(v) => setParams(v === 'mine' ? { vue: 'mes-trajets' } : {})}>
-        <TabsList>
-          <TabsTrigger value="search">Rechercher</TabsTrigger>
-          <TabsTrigger value="mine">Mes trajets</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <ViewSwitch
+        label="Vue du covoiturage"
+        value={mine ? 'mine' : 'search'}
+        options={[
+          { value: 'search', label: 'Rechercher', to: '/covoiturage' },
+          { value: 'mine', label: 'Mes trajets', to: '/covoiturage?vue=mes-trajets' },
+        ]}
+      />
       {mine ? (
         <MyRides />
       ) : (

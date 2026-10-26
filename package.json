@@ -10,12 +10,19 @@
     "dev": "docker compose up -d --wait && concurrently -n api,web -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
     "services": "docker compose up -d --wait",
     "db:init": "docker compose exec mongo mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }\"",
+    "seed": "npm run seed -w server --",
+    "check:invariants": "npm run check:invariants -w server --",
+    "uploads:gc": "npm run uploads:gc -w server --",
+    "db:backup": "node scripts/backup.mjs backup",
+    "db:restore": "node scripts/backup.mjs restore",
     "test": "npm test -w server",
+    "test:e2e": "playwright test",
     "ml:train": "docker compose exec ml python train.py && docker compose restart ml",
     "ml:test": "docker compose run --rm --no-deps ml python -m pytest -q",
     "plan": "node scripts/plan-server.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "concurrently": "^10.0.6"
   },

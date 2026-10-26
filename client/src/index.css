@@ -49,9 +49,10 @@
   --card-foreground: #eceef2;
   --popover: #1b1f26;
   --popover-foreground: #eceef2;
-  --primary: #5574f0;
-  --primary-hover: #6a87f5;
-  --primary-foreground: #ffffff;
+  /* Lighter accent with dark text: white on a mid blue can't reach 4.5:1 while the same blue stays legible as text. */
+  --primary: #6a87f5;
+  --primary-hover: #8199f7;
+  --primary-foreground: #0b1020;
   --primary-soft: #1d2747;
   --primary-soft-foreground: #afc0ff;
   --secondary: #222731;

@@ -1,4 +1,7 @@
 import express from 'express';
+import { readFileSync } from 'node:fs';
+import swaggerUi from 'swagger-ui-express';
+import { parse as parseYaml } from 'yaml';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { pinoHttp } from 'pino-http';
@@ -19,6 +22,8 @@ import { conversationsRouter, notificationsRouter } from './routes/messages.js';
 import { homeRouter } from './routes/home.js';
 import { adminRouter } from './routes/admin.js';
 
+const openapi = parseYaml(readFileSync(new URL('../openapi.yaml', import.meta.url), 'utf8'));
+
 export function createApp() {
   const app = express();
   app.set('trust proxy', 'loopback');
@@ -36,6 +41,8 @@ export function createApp() {
   app.use('/uploads/documents', notFoundHandler);
   app.use('/uploads', express.static(uploadsRoot, { maxAge: '7d', fallthrough: false }));
 
+  app.get('/api/openapi.json', (req, res) => res.json(openapi));
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: 'CampusHub API' }));
   app.use('/api', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/utilisateurs', usersRouter);

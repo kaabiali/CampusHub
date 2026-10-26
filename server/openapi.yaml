@@ -1,0 +1,1209 @@
+openapi: 3.1.0
+info:
+  title: CampusHub API
+  version: 1.0.0
+  description: |
+    API REST de CampusHub (Node.js, Express 5, MongoDB). Toutes les routes sont préfixées par /api.
+    Authentification : cookie httpOnly campushub_token posé à la connexion (web), ou en-tête Authorization: Bearer (mobile).
+    Les erreurs suivent toujours le format { error: { code, message, champs? } }, messages en français.
+    Temps réel (Socket.io, même authentification) : message:send (avec accusé) et typing ; côté client message:new, messages:lus, notification:new, notifications:lues et typing.
+servers:
+  - url: /api
+tags:
+  - name: Système
+  - name: Authentification
+  - name: Profil
+  - name: Livres
+  - name: Modération
+  - name: Covoiturage
+  - name: Groupes
+  - name: Événements
+  - name: Administration
+  - name: Messagerie
+  - name: Notifications
+  - name: Recommandations
+paths:
+  /health:
+    get:
+      tags: [Système]
+      summary: "État de l’API, de MongoDB et du service ML"
+      security: []
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+  /auth/inscription:
+    post:
+      tags: [Authentification]
+      summary: "Créer un compte (adresse @campus.tn) et envoyer le lien de vérification"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Inscription' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /auth/connexion:
+    post:
+      tags: [Authentification]
+      summary: "Se connecter (pose le cookie de session)"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Connexion' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /auth/deconnexion:
+    post:
+      tags: [Authentification]
+      summary: "Se déconnecter (efface le cookie)"
+      security: []
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /auth/moi:
+    get:
+      tags: [Authentification]
+      summary: "Utilisateur courant, ou null pour un visiteur"
+      security: []
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+  /auth/verifier:
+    post:
+      tags: [Authentification]
+      summary: "Confirmer l’adresse e-mail avec le jeton reçu"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Jeton' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /auth/renvoyer-verification:
+    post:
+      tags: [Authentification]
+      summary: "Renvoyer le lien de vérification"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /auth/mot-de-passe-oublie:
+    post:
+      tags: [Authentification]
+      summary: "Demander un lien de réinitialisation (réponse identique si le compte n’existe pas)"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Email' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /auth/reinitialiser:
+    post:
+      tags: [Authentification]
+      summary: "Choisir un nouveau mot de passe avec le jeton reçu"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reinitialisation' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+  /utilisateurs/moi:
+    patch:
+      tags: [Profil]
+      summary: "Modifier son profil (filière, niveau, matières, centres d’intérêt)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Profil' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /utilisateurs/moi/photo:
+    post:
+      tags: [Profil]
+      summary: "Changer la photo de profil (multipart, champ photo, 5 Mo)"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties: { photo: { type: string, format: binary } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /utilisateurs/moi/mot-de-passe:
+    patch:
+      tags: [Profil]
+      summary: "Changer son mot de passe (révoque les autres sessions)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangementMotDePasse' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /utilisateurs/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Profil]
+      summary: "Profil public d’un étudiant"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+  /annonces/prix-conseille:
+    get:
+      tags: [Livres]
+      summary: "Fourchette de prix conseillée (Random Forest, repli heuristique)"
+      security: []
+      parameters:
+        - { name: matiere, in: query, schema: { type: string } }
+        - { name: etat, in: query, schema: { type: string } }
+        - { name: anneeEdition, in: query, schema: { type: integer } }
+        - { name: prixNeuf, in: query, schema: { type: number } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+  /annonces:
+    get:
+      tags: [Livres]
+      summary: "Rechercher les annonces (filtres, tri, pagination)"
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: categorie, in: query, schema: { type: string } }
+        - { name: etat, in: query, schema: { type: string }, description: "Valeurs séparées par des virgules : NEUF,TRES_BON,BON,ACCEPTABLE" }
+        - { name: prixMax, in: query, schema: { type: number } }
+        - { name: vendeur, in: query, schema: { type: string }, description: "moi pour ses propres annonces" }
+        - { name: tri, in: query, schema: { type: string }, description: "recent | prix_asc | prix_desc" }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Livres]
+      summary: "Publier une annonce (multipart, jusqu’à 5 photos)"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Annonce'
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /annonces/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Livres]
+      summary: "Détail d’une annonce"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    patch:
+      tags: [Livres]
+      summary: "Modifier une annonce (vendeur)"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Annonce'
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Livres]
+      summary: "Supprimer une annonce et ses photos"
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /annonces/{id}/statut:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Livres]
+      summary: "Marquer vendue ou remettre en vente"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StatutAnnonce' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /categories:
+    get:
+      tags: [Livres]
+      summary: "Lister les catégories"
+      security: []
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+  /signalements:
+    post:
+      tags: [Modération]
+      summary: "Signaler une annonce, un trajet, un événement ou un message reçu"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Signalement' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /trajets:
+    get:
+      tags: [Covoiturage]
+      summary: "Rechercher les trajets à venir (départ, arrivée, date)"
+      parameters:
+        - { name: depart, in: query, schema: { type: string } }
+        - { name: arrivee, in: query, schema: { type: string } }
+        - { name: date, in: query, schema: { type: string }, description: "AAAA-MM-JJ (heure de Tunis)" }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Covoiturage]
+      summary: "Proposer un trajet"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Trajet' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /trajets/mes-trajets:
+    get:
+      tags: [Covoiturage]
+      summary: "Mes réservations et les trajets que je propose"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /trajets/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Covoiturage]
+      summary: "Détail d’un trajet avec ses passagers"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    patch:
+      tags: [Covoiturage]
+      summary: "Modifier un trajet (conducteur)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Trajet' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /trajets/{id}/annuler:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Covoiturage]
+      summary: "Annuler un trajet (passagers prévenus)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /trajets/{id}/reservations:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Covoiturage]
+      summary: "Réserver des places (transaction, jamais de surréservation)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Reservation' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /reservations/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    delete:
+      tags: [Covoiturage]
+      summary: "Annuler sa réservation"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /reservations/{id}/avis:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Covoiturage]
+      summary: "Noter le conducteur (dans les 7 jours suivant le départ)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Avis' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes:
+    get:
+      tags: [Groupes]
+      summary: "Explorer les groupes d’étude"
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Groupes]
+      summary: "Créer un groupe"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Groupe' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/mes-groupes:
+    get:
+      tags: [Groupes]
+      summary: "Mes groupes"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Groupes]
+      summary: "Détail d’un groupe (documents réservés aux membres)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    patch:
+      tags: [Groupes]
+      summary: "Modifier un groupe (créateur)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Groupe' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Groupes]
+      summary: "Supprimer un groupe (créateur ou admin)"
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/membres:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Groupes]
+      summary: "Rejoindre un groupe (capacité vérifiée de façon atomique)"
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/membres/{uid}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+      - { name: uid, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    delete:
+      tags: [Groupes]
+      summary: "Quitter le groupe ou retirer un membre (créateur)"
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/seances:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Groupes]
+      summary: "Planifier une séance"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Seance' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/seances/{sid}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+      - { name: sid, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    delete:
+      tags: [Groupes]
+      summary: "Supprimer une séance"
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/documents:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Groupes]
+      summary: "Partager un PDF (multipart, champ fichier, 20 Mo)"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties: { fichier: { type: string, format: binary } }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/documents/{did}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+      - { name: did, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Groupes]
+      summary: "Télécharger un document (membres uniquement)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Groupes]
+      summary: "Supprimer un document"
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /clubs:
+    get:
+      tags: [Événements]
+      summary: "Lister les clubs et leurs responsables"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Administration]
+      summary: "Créer un club"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Club' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /clubs/mes-clubs:
+    get:
+      tags: [Événements]
+      summary: "Clubs dont je suis responsable"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /clubs/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    patch:
+      tags: [Administration]
+      summary: "Modifier un club"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Club' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Administration]
+      summary: "Supprimer un club sans événement"
+      description: Réservé aux administrateurs.
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /clubs/{id}/responsables:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    put:
+      tags: [Administration]
+      summary: "Désigner les responsables d’un club (par e-mail)"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Responsables' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /evenements/publics:
+    get:
+      tags: [Événements]
+      summary: "Événements publics à venir (sans connexion)"
+      security: []
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+  /evenements:
+    get:
+      tags: [Événements]
+      summary: "Lister les événements à venir (tous, mes inscriptions, ce mois-ci)"
+      parameters:
+        - { name: filtre, in: query, schema: { type: string }, description: "tous | mes-inscriptions | ce-mois" }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Événements]
+      summary: "Publier un événement (responsables du club)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Evenement' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /evenements/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Événements]
+      summary: "Détail d’un événement"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    patch:
+      tags: [Événements]
+      summary: "Modifier un événement"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Evenement' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /evenements/{id}/annuler:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Événements]
+      summary: "Annuler un événement (inscrits prévenus)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /evenements/{id}/inscrits:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Événements]
+      summary: "Liste des inscrits (responsables)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+  /evenements/{id}/inscription:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Événements]
+      summary: "S’inscrire (capacité vérifiée en transaction)"
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Événements]
+      summary: "Se désinscrire"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /conversations:
+    get:
+      tags: [Messagerie]
+      summary: "Mes conversations avec le nombre de non-lus"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /conversations/{uid}/messages:
+    parameters:
+      - { name: uid, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Messagerie]
+      summary: "Historique paginé avec un étudiant"
+      parameters:
+        - { name: avant, in: query, schema: { type: string }, description: "Date ISO : messages plus anciens" }
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Messagerie]
+      summary: "Envoyer un message (repli REST du socket, idempotent par clientId)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Message' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /conversations/{uid}/lu:
+    parameters:
+      - { name: uid, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Messagerie]
+      summary: "Marquer la conversation comme lue"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: "Dernières notifications et nombre de non-lues"
+      parameters:
+        - { name: limit, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /notifications/lues:
+    post:
+      tags: [Notifications]
+      summary: "Marquer des notifications (ou toutes) comme lues"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Ids' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /recommandations:
+    get:
+      tags: [Recommandations]
+      summary: "Groupes, événements et livres recommandés (TF-IDF)"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /accueil:
+    get:
+      tags: [Recommandations]
+      summary: "Résumé du tableau de bord étudiant"
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /admin/stats:
+    get:
+      tags: [Administration]
+      summary: "Statistiques de la période (7, 30 jours ou semestre)"
+      description: Réservé aux administrateurs.
+      parameters:
+        - { name: periode, in: query, schema: { type: string }, description: "7 | 30 | semestre" }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /admin/utilisateurs:
+    get:
+      tags: [Administration]
+      summary: "Rechercher les comptes"
+      description: Réservé aux administrateurs.
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: statut, in: query, schema: { type: string }, description: "tous | bloques | non-verifies | admins" }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /admin/utilisateurs/{id}/bloquer:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Administration]
+      summary: "Bloquer ou débloquer un compte"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Blocage' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /admin/utilisateurs/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    delete:
+      tags: [Administration]
+      summary: "Supprimer (anonymiser) un compte"
+      description: Réservé aux administrateurs.
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /admin/categories:
+    post:
+      tags: [Administration]
+      summary: "Créer une catégorie"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Categorie' }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /admin/categories/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    patch:
+      tags: [Administration]
+      summary: "Renommer une catégorie"
+      description: Réservé aux administrateurs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Categorie' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Administration]
+      summary: "Supprimer une catégorie inutilisée"
+      description: Réservé aux administrateurs.
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /admin/signalements:
+    get:
+      tags: [Administration]
+      summary: "Signalements en attente ou traités"
+      description: Réservé aux administrateurs.
+      parameters:
+        - { name: statut, in: query, schema: { type: string }, description: "EN_ATTENTE | TRAITES" }
+        - { name: page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+  /admin/signalements/{id}/traiter:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Administration]
+      summary: "Retirer le contenu signalé et clore ses signalements"
+      description: Réservé aux administrateurs.
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+  /admin/signalements/{id}/rejeter:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Administration]
+      summary: "Rejeter un signalement"
+      description: Réservé aux administrateurs.
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '409': { $ref: '#/components/responses/Erreur' }
+components:
+  securitySchemes:
+    cookie: { type: apiKey, in: cookie, name: campushub_token }
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  responses:
+    Erreur:
+      description: Erreur (message en français)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Erreur' } } }
+  schemas:
+    Erreur:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: TRAJET_COMPLET }
+            message: { type: string, example: "Ce trajet est complet." }
+            champs: { type: object, additionalProperties: { type: string }, description: Erreurs par champ pour les formulaires }
+    Inscription:
+      type: object
+      required: [prenom, nom, email, motDePasse]
+      properties:
+        prenom: { type: string }
+        nom: { type: string }
+        email: { type: string, format: email }
+        motDePasse: { type: string, format: password }
+        filiere: { type: string }
+        niveau: { type: string }
+    Connexion:
+      type: object
+      required: [email, motDePasse]
+      properties:
+        email: { type: string, format: email }
+        motDePasse: { type: string, format: password }
+    Jeton:
+      type: object
+      required: [jeton]
+      properties:
+        jeton: { type: string }
+    Email:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    Reinitialisation:
+      type: object
+      required: [jeton, motDePasse]
+      properties:
+        jeton: { type: string }
+        motDePasse: { type: string, format: password }
+    Profil:
+      type: object
+      properties:
+        prenom: { type: string }
+        nom: { type: string }
+        filiere: { type: string }
+        niveau: { type: string }
+        matieres:
+          type: array
+          items: { type: string }
+        centresInteret:
+          type: array
+          items: { type: string }
+    ChangementMotDePasse:
+      type: object
+      required: [actuel, nouveau]
+      properties:
+        actuel: { type: string, format: password }
+        nouveau: { type: string, format: password }
+    Annonce:
+      type: object
+      required: [titre, categorie, matiere, etat, prix]
+      properties:
+        titre: { type: string }
+        auteur: { type: string }
+        categorie: { type: string }
+        matiere: { type: string }
+        etat: { type: string }
+        anneeEdition: { type: integer }
+        prixNeuf: { type: number }
+        prix: { type: number }
+        description: { type: string }
+        conserver: { type: string }
+        photos:
+          type: array
+          items: { type: string, format: binary }
+    StatutAnnonce:
+      type: object
+      required: [statut]
+      properties:
+        statut: { type: string }
+    Signalement:
+      type: object
+      required: [typeContenu, contenuId, motif]
+      properties:
+        typeContenu: { type: string }
+        contenuId: { type: string }
+        motif: { type: string }
+    Trajet:
+      type: object
+      required: [lieuDepart, lieuArrivee, dateDepart, placesTotales, prix]
+      properties:
+        lieuDepart: { type: string }
+        lieuArrivee: { type: string }
+        dateDepart: { type: string, format: date-time }
+        dureeMinutes: { type: integer }
+        placesTotales: { type: integer }
+        prix: { type: number }
+        vehicule: { type: string }
+        details: { type: string }
+    Reservation:
+      type: object
+      properties:
+        nbPlaces: { type: integer }
+    Avis:
+      type: object
+      required: [note]
+      properties:
+        note: { type: integer }
+        commentaire: { type: string }
+    Groupe:
+      type: object
+      required: [nom, matiere]
+      properties:
+        nom: { type: string }
+        matiere: { type: string }
+        description: { type: string }
+        capaciteMax: { type: integer }
+    Seance:
+      type: object
+      required: [date, lieu, sujet]
+      properties:
+        date: { type: string, format: date-time }
+        duree: { type: integer }
+        lieu: { type: string }
+        sujet: { type: string }
+    Club:
+      type: object
+      required: [nom]
+      properties:
+        nom: { type: string }
+        description: { type: string }
+    Responsables:
+      type: object
+      required: [emails]
+      properties:
+        emails:
+          type: array
+          items: { type: string }
+    Evenement:
+      type: object
+      required: [club, titre, lieu, dateDebut]
+      properties:
+        club: { type: string }
+        titre: { type: string }
+        description: { type: string }
+        lieu: { type: string }
+        dateDebut: { type: string, format: date-time }
+        dateFin: { type: string, format: date-time }
+        capacite: { type: integer }
+        estPublic: { type: boolean }
+    Message:
+      type: object
+      required: [contenu, clientId]
+      properties:
+        contenu: { type: string }
+        clientId: { type: string }
+        contexte: { type: object }
+    Ids:
+      type: object
+      properties:
+        ids:
+          type: array
+          items: { type: string }
+    Blocage:
+      type: object
+      required: [bloque]
+      properties:
+        bloque: { type: boolean }
+    Categorie:
+      type: object
+      required: [nom]
+      properties:
+        nom: { type: string }
+        description: { type: string }
+security:
+  - cookie: []
+  - bearer: []
