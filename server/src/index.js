@@ -3,8 +3,10 @@ import { config } from './config.js';
 import { connectDb } from './db.js';
 import { createApp } from './app.js';
 import { logger } from './lib/logger.js';
+import { ensureDefaultCategories } from './models/Category.js';
 
 await connectDb(config.mongoUrl);
+await ensureDefaultCategories();
 
 const app = createApp();
 const server = createServer(app);

@@ -8,6 +8,9 @@ import { uploadsRoot } from './lib/upload.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { usersRouter } from './routes/users.js';
+import { booksRouter } from './routes/books.js';
+import { categoriesRouter } from './routes/categories.js';
+import { reportsRouter } from './routes/reports.js';
 
 export function createApp() {
   const app = express();
@@ -27,6 +30,9 @@ export function createApp() {
   app.use('/api', healthRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/utilisateurs', usersRouter);
+  app.use('/api/annonces', booksRouter);
+  app.use('/api/categories', categoriesRouter);
+  app.use('/api/signalements', reportsRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);

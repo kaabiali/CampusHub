@@ -1,4 +1,5 @@
 import { mkdirSync } from 'node:fs';
+import { unlink } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
@@ -34,3 +35,8 @@ export const pdfUpload = makeUploader('documents', ['application/pdf'], 20 * 102
 
 export const publicUrl = (file) => `/uploads/${file.destination.split(/[\\/]/).pop()}/${file.filename}`;
 export const uploadsRoot = root;
+
+export async function removeUpload(url) {
+  if (!url?.startsWith('/uploads/') || url.includes('..')) return;
+  await unlink(join(root, url.slice('/uploads/'.length))).catch(() => {});
+}

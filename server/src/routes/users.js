@@ -1,13 +1,11 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
-import { unlink } from 'node:fs/promises';
-import { join } from 'node:path';
 import { User, publicUserFields } from '../models/User.js';
 import { requireAuth, setAuthCookie } from '../lib/auth.js';
 import { validate, isStrongPassword, PASSWORD_RULE_MSG } from '../lib/validate.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
-import { avatarUpload, publicUrl, uploadsRoot } from '../lib/upload.js';
+import { avatarUpload, publicUrl, removeUpload } from '../lib/upload.js';
 
 export const usersRouter = Router();
 
@@ -37,11 +35,6 @@ usersRouter.patch(
     res.json({ utilisateur: req.user });
   },
 );
-
-async function removeUpload(url) {
-  if (!url?.startsWith('/uploads/')) return;
-  await unlink(join(uploadsRoot, url.slice('/uploads/'.length))).catch(() => {});
-}
 
 usersRouter.post('/moi/photo', requireAuth(), avatarUpload.single('photo'), async (req, res) => {
   if (!req.file) throw badRequest('FICHIER_MANQUANT', 'Ajoutez une image.');

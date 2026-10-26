@@ -1,6 +1,9 @@
-import { House, UserRound } from 'lucide-react';
+import { BookOpen, House, UserRound } from 'lucide-react';
 
-export const NAV = [{ to: '/accueil', label: 'Accueil', icon: House, keywords: 'tableau de bord dashboard' }];
+export const NAV = [
+  { to: '/accueil', label: 'Accueil', icon: House, keywords: 'tableau de bord dashboard' },
+  { to: '/livres', label: 'Livres', icon: BookOpen, keywords: 'marketplace annonces manuels vendre acheter' },
+];
 
 export const ADMIN_NAV = [];
 

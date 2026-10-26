@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useDebounced } from '@/hooks/useDebounced';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -13,15 +14,6 @@ export const ETATS = [
   { value: 'BON', label: 'Bon' },
   { value: 'ACCEPTABLE', label: 'Acceptable' },
 ];
-
-function useDebounced(value, delay) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return v;
-}
 
 export function usePriceSuggestion({ matiere, etat, anneeEdition, prixNeuf }) {
   const params = useDebounced({ matiere, etat, anneeEdition, prixNeuf }, 400);
