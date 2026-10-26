@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampusHub MERN Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg-0: #F6F7F9; --bg-1: #FFFFFF; --bg-2: #F0F2F5; --bg-3: #E7EAEF;
+  --fg-1: #14171C; --fg-2: #3D4450; --fg-3: #5B6370;
+  --border: #E3E6EB; --border-strong: #CDD2DA;
+  --accent: #2547D0; --accent-soft: #E9EEFC; --accent-ink: #1A36A6;
+  --red: #C0352B; --red-soft: #FCEBEA; --amber: #A15C07; --amber-soft: #FDF3E1;
+  --green: #1F7A4D; --green-soft: #E3F3EA; --blue: #2563EB; --blue-soft: #E8F0FE;
+  --shadow-1: 0 1px 2px rgba(20,23,28,.05), 0 1px 1px rgba(20,23,28,.03);
+  --shadow-2: 0 1px 2px rgba(20,23,28,.05), 0 4px 14px rgba(20,23,28,.06);
+  --shadow-3: 0 2px 6px rgba(20,23,28,.08), 0 16px 40px rgba(20,23,28,.12);
+  --font: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', monospace;
+}
+html.dark {
+  --bg-0: #0E1014; --bg-1: #171A20; --bg-2: #1E222A; --bg-3: #272C36;
+  --fg-1: #ECEEF2; --fg-2: #C4CAD4; --fg-3: #9AA2AE;
+  --border: #2A2F38; --border-strong: #3A404B;
+  --accent: #6A87F5; --accent-soft: #1D2747; --accent-ink: #AFC0FF;
+  --red: #F07A70; --red-soft: #3A1D1B; --amber: #F0B05E; --amber-soft: #3A2B14;
+  --green: #6FCF9C; --green-soft: #14301F; --blue: #7DA6FF; --blue-soft: #18264A;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.35);
+  --shadow-3: 0 2px 6px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.5);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg-0); color: var(--fg-1); font-family: var(--font); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; transition: background-color 150ms ease-out, color 150ms ease-out; }
+h1, h2, h3, h4, p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: 12px; }
+code { background: var(--bg-2); padding: 1px 5px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--fg-3); }
+.ink2 { color: var(--fg-2); }
+svg.lucide { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Elevation: 0 page, 1 inset card, 2 section, 3 floating */
+.elev-1 { background: var(--bg-1); border: 1px solid var(--border); box-shadow: var(--shadow-1); border-radius: 8px; }
+.elev-2 { background: var(--bg-1); border: 1px solid var(--border); box-shadow: var(--shadow-2); border-radius: 12px; }
+.elev-3 { background: var(--bg-1); border: 1px solid var(--border-strong); box-shadow: var(--shadow-3); border-radius: 12px; }
+.inset { background: var(--bg-2); border-radius: 8px; }
+
+/* Top bar */
+.topbar { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg-0) 85%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.topbar-in { max-width: 1240px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
+.brand-mark { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+.nav { display: flex; gap: 2px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+.nav a { padding: 6px 10px; border-radius: 6px; color: var(--fg-2); text-decoration: none; font-size: 13px; font-weight: 500; white-space: nowrap; transition: background-color 150ms ease-out, color 150ms ease-out; }
+.nav a:hover, .nav a.on { background: var(--bg-2); color: var(--fg-1); }
+.icon-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-1); color: var(--fg-2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.icon-btn:focus-visible, button:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.tag-mute { background: var(--bg-2); color: var(--fg-2); }
+.tag-accent { background: var(--accent-soft); color: var(--accent-ink); }
+.tag-green, .tag-success { background: var(--green-soft); color: var(--green); }
+.tag-amber, .tag-warn { background: var(--amber-soft); color: var(--amber); }
+.tag-red, .tag-danger { background: var(--red-soft); color: var(--red); }
+.tag-blue { background: var(--blue-soft); color: var(--blue); }
+
+/* Layout */
+main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 120px; }
+section.sec { padding: 28px; margin-bottom: 64px; }
+.sec-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+.sec-num { font-family: var(--mono); font-size: 12px; padding: 3px 7px; border-radius: 6px; background: var(--bg-2); color: var(--fg-3); margin-top: 3px; }
+.sec-head h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.sec-head p { color: var(--fg-3); margin-top: 2px; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.pad { padding: 16px 18px; }
+.eyebrow { font-size: 12px; font-weight: 600; color: var(--fg-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; margin-bottom: 56px; align-items: stretch; }
+.hero h1 { font-size: 28px; letter-spacing: -0.03em; line-height: 1.15; }
+.hero p.lead { font-size: 16px; color: var(--fg-2); margin-top: 10px; max-width: 62ch; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.kpi { padding: 14px 16px; }
+.kpi .v { font-family: var(--mono); font-size: 28px; line-height: 1.1; }
+.kpi .l { font-size: 12px; color: var(--fg-3); margin-top: 4px; }
+
+/* Scope */
+.chip { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px; background: var(--bg-2); border-left: 3px solid var(--fg-3); font-size: 13px; font-weight: 500; }
+.chip-in { border-left-color: var(--green); }
+.chip-out { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+.constraint { padding: 12px 14px; border-left: 3px solid var(--accent); }
+.constraint .v { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.constraint .l { font-size: 12px; color: var(--fg-3); }
+.person { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.delta { display: grid; grid-template-columns: 1fr 20px 1fr; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.delta:last-child { border-bottom: 0; }
+.delta .from { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+
+/* Mermaid */
+.diagram { background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; }
+pre.mermaid { margin: 0; display: flex; justify-content: center; min-height: 120px; font-family: var(--font); }
+pre.mermaid:not([data-processed]) { color: transparent; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--fg-3); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 10px; border-radius: 3px; display: inline-block; border: 2px solid; }
+
+/* Tabs */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--bg-2); border-radius: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.tabs button { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--fg-3); cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out; }
+.tabs button.on { background: var(--bg-1); color: var(--fg-1); box-shadow: var(--shadow-1); }
+.pane[hidden] { display: none; }
+body.rendering .pane[hidden] { display: block; position: absolute; left: -99999px; width: 1100px; }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-1); box-shadow: var(--shadow-1); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--fg-3); background: var(--bg-2); padding: 10px 14px; white-space: nowrap; }
+td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: color-mix(in srgb, var(--bg-2) 55%, transparent); }
+td.sub { font-weight: 600; white-space: nowrap; }
+.m { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 500; padding: 1px 6px; border-radius: 4px; margin: 0 4px 4px 0; }
+.m-get { background: var(--blue-soft); color: var(--blue); }
+.m-post { background: var(--green-soft); color: var(--green); }
+.m-patch { background: var(--amber-soft); color: var(--amber); }
+.m-del { background: var(--red-soft); color: var(--red); }
+.m-ws { background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Decisions */
+.dec { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.dec-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dec-topic { font-size: 12px; font-weight: 600; color: var(--fg-3); text-transform: uppercase; letter-spacing: .05em; }
+.dec-choice { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-top: 2px; }
+.dec-why { color: var(--fg-2); font-size: 13px; }
+.rev { width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.rev-E { background: var(--green-soft); color: var(--green); }
+.rev-H { background: var(--amber-soft); color: var(--amber); }
+.rev-I { background: var(--red-soft); color: var(--red); }
+.conf { display: flex; align-items: center; gap: 10px; }
+.conf-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--bg-3); overflow: hidden; }
+.conf-bar span { display: block; height: 100%; border-radius: 999px; }
+.c-low .conf-bar span { background: var(--red); } .c-mid .conf-bar span { background: var(--amber); } .c-high .conf-bar span { background: var(--green); }
+.conf .v { font-family: var(--mono); font-size: 13px; width: 30px; text-align: right; }
+.c-low .v, .conf.c-low .v { color: var(--red); }
+.rej { border-top: 1px solid var(--border); padding-top: 10px; font-size: 12px; color: var(--fg-3); display: flex; flex-direction: column; gap: 3px; }
+.rej b { color: var(--fg-2); font-weight: 600; }
+details.dec-more summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--accent); list-style: none; }
+details.dec-more summary::-webkit-details-marker { display: none; }
+details.dec-more[open] summary { margin-bottom: 6px; }
+.spec-flag { font-size: 12px; color: var(--amber); display: flex; gap: 6px; align-items: flex-start; }
+
+/* Failure map */
+.sev { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+.heat { display: grid; grid-template-columns: 150px repeat(4, minmax(0,1fr)); gap: 4px; font-size: 12px; }
+.heat .h { font-weight: 600; color: var(--fg-3); padding: 6px 4px; text-align: center; }
+.heat .r { font-weight: 600; padding: 8px 6px; display: flex; align-items: center; }
+.heat .c { border-radius: 6px; padding: 8px 6px; text-align: center; font-weight: 600; }
+.lv0 { background: var(--bg-2); color: var(--fg-3); }
+.lv1 { background: var(--green-soft); color: var(--green); }
+.lv2 { background: var(--amber-soft); color: var(--amber); }
+.lv3 { background: var(--red-soft); color: var(--red); }
+
+/* Timeline */
+.ribbon { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+.step { position: relative; padding: 12px 10px 10px; border-radius: 8px; background: var(--bg-1); border: 1px solid var(--border); box-shadow: var(--shadow-1); border-top: 3px solid var(--accent); min-height: 132px; display: flex; flex-direction: column; gap: 4px; cursor: default; transition: transform 150ms ease-out, box-shadow 150ms ease-out; }
+.step:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.step .id { font-family: var(--mono); font-size: 12px; color: var(--fg-3); }
+.step .t { font-size: 13px; font-weight: 700; line-height: 1.25; }
+.step .d { font-size: 12px; color: var(--fg-3); line-height: 1.4; }
+.step .flag { position: absolute; top: -11px; right: 6px; width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; }
+.step .flag svg { width: 12px; height: 12px; }
+.flag-cp { background: var(--blue); color: #fff; }
+.flag-ks { background: var(--red); color: #fff; }
+.step.ml { border-top-color: var(--amber); }
+.step.rt { border-top-color: var(--green); }
+.lanes { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.lane { height: 6px; border-radius: 999px; }
+
+/* Questions & approvals */
+.qa-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color 150ms ease-out; }
+.qa-card:has(input:checked) { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.qa-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.qa-body { font-size: 13px; color: var(--fg-2); }
+.qa-impact { background: var(--bg-2); border-left: 3px solid var(--accent); padding: 9px 12px; border-radius: 0 6px 6px 0; font-size: 13px; color: var(--fg-2); }
+.qa-impact b { color: var(--fg-1); }
+.qa-options { display: grid; gap: 6px; }
+.qa-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-1); cursor: pointer; transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.qa-option:hover { background: var(--bg-2); }
+.qa-option:has(input:checked) { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.qa-option input { margin: 3px 0 0; accent-color: var(--accent); flex-shrink: 0; }
+.qa-option-title { font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.qa-option-desc { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
+.qa-option:has(input:checked) .qa-option-title { color: var(--accent-ink); }
+.qa-notes { width: 100%; font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-2); color: var(--fg-1); resize: vertical; min-height: 34px; }
+.qa-notes:focus { outline: none; border-color: var(--accent); background: var(--bg-1); box-shadow: 0 0 0 3px var(--accent-soft); }
+.approve { display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; cursor: pointer; transition: background-color 150ms ease-out, border-color 150ms ease-out; }
+.approve input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--accent); flex-shrink: 0; }
+.approve:has(input:checked) { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.approve .t { font-size: 14px; font-weight: 700; }
+.approve .d { font-size: 13px; color: var(--fg-2); margin-top: 4px; }
+.approve .cost { font-size: 12px; color: var(--fg-3); margin-top: 6px; }
+
+/* Readiness */
+.ready { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; }
+.ready .box { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border-strong); flex-shrink: 0; margin-top: 2px; display: inline-flex; align-items: center; justify-content: center; }
+.ready .box.ok { background: var(--green); border-color: var(--green); color: #fff; }
+.ready .box svg { width: 11px; height: 11px; }
+.ready .t { font-size: 13px; font-weight: 600; }
+.ready .d { font-size: 12px; color: var(--fg-3); }
+
+/* Scorecard */
+.score { display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 24px; align-items: center; }
+.score-big { font-family: var(--mono); font-size: 56px; line-height: 1; letter-spacing: -0.03em; }
+.score-row { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.score-row:first-child { border-top: 0; }
+.score-row .k { color: var(--fg-3); font-weight: 600; }
+
+/* Decisions panel */
+#ds-panel { position: fixed; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; align-items: flex-end; }
+#ds-toggle { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--fg-1); }
+#ds-detail { width: 340px; max-width: calc(100vw - 40px); max-height: 60vh; overflow: auto; padding: 16px; margin-bottom: 8px; font-size: 13px; animation: pop 160ms ease-out; }
+#ds-detail.hidden { display: none; }
+#ds-summary b { display: block; margin-bottom: 4px; }
+#ds-summary div div { color: var(--fg-2); padding: 2px 0; }
+.btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-1); color: var(--fg-1); cursor: pointer; flex: 1; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+footer.end { font-family: var(--mono); font-size: 12px; color: var(--fg-3); padding-top: 8px; }
+
+@media (max-width: 1080px) {
+  .ribbon, .lanes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .lanes { display: none; }
+}
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; }
+  .score { grid-template-columns: 1fr; }
+  .score-row { grid-template-columns: 1fr; gap: 2px; }
+  .heat { grid-template-columns: 110px repeat(4, minmax(0,1fr)); }
+  .ribbon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  section.sec { padding: 20px 16px; }
+  main { padding: 28px 16px 120px; }
+  .topbar-in { padding: 10px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">C</span>CampusHub · plan MERN</div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#scope">Scope</a>
+      <a href="#system">Architecture</a>
+      <a href="#data">Données</a>
+      <a href="#flows">Flux</a>
+      <a href="#states">États</a>
+      <a href="#api">API &amp; écrans</a>
+      <a href="#decisions">Décisions</a>
+      <a href="#failures">Pannes</a>
+      <a href="#timeline">Séquence</a>
+      <a href="#questions">Questions</a>
+      <a href="#approvals">Validations</a>
+      <a href="#readiness">Prêt</a>
+    </nav>
+    <span id="save-indicator" class="tag tag-mute">loading…</span>
+    <button id="theme-toggle" class="icon-btn" aria-label="Changer de thème"><i data-lucide="moon"></i></button>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <div class="elev-2" style="padding:28px;display:flex;flex-direction:column;justify-content:space-between;gap:20px">
+      <div>
+        <div class="row" style="margin-bottom:12px"><span class="tag tag-accent">Plan d'implémentation</span><span class="tag tag-mute">en attente de validation</span></div>
+        <h1>CampusHub : de la maquette HTML à une application MERN fonctionnelle</h1>
+        <p class="lead">React (Vite) + Express + MongoDB + micro-service Python (Flask, scikit-learn), aligné sur le cahier des charges MERN et le diagramme de classes UML. L'interface reprend la maquette existante (Geist, accent <code>#2547D0</code>, prix en mono) sur shadcn/ui, en clair et en sombre.</p>
+      </div>
+      <div class="row">
+        <span class="tag tag-mute"><i data-lucide="file-text"></i>Cahier_des_charges_CampusHub_MERN.docx</span>
+        <span class="tag tag-mute"><i data-lucide="git-branch"></i>CampusHub_UML / 00_diagramme_classes</span>
+        <span class="tag tag-mute"><i data-lucide="layout"></i>CampusHub_Maquette (10 pages)</span>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="elev-1 kpi"><div class="v num">7</div><div class="l">modules fonctionnels</div></div>
+      <div class="elev-1 kpi"><div class="v num">12</div><div class="l">collections MongoDB</div></div>
+      <div class="elev-1 kpi"><div class="v num">4</div><div class="l">processus (web, api, ml, mongo)</div></div>
+      <div class="elev-1 kpi"><div class="v num">12</div><div class="l">étapes, 4 points de contrôle</div></div>
+      <div class="elev-1 kpi"><div class="v num" style="color:var(--amber)">5</div><div class="l">questions ouvertes</div></div>
+      <div class="elev-1 kpi"><div class="v num">0.80</div><div class="l">confiance globale</div></div>
+    </div>
+  </div>
+
+  <!-- 01 SCOPE -->
+  <section id="scope" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">01</span><div><h2>Périmètre</h2><p>Ce que cette construction livre, ce qu'elle ne livre pas, et les contraintes fixes.</p></div></div>
+    <div class="grid g3">
+      <div class="elev-1 pad">
+        <div class="eyebrow"><i data-lucide="check-circle-2"></i>Inclus</div>
+        <div class="stack">
+          <span class="chip chip-in">Auth : inscription @campus.tn, vérification e-mail, connexion JWT, mot de passe oublié, profil + photo</span>
+          <span class="chip chip-in">Marketplace livres : publier, photos (0..5), filtres, contacter, marquer vendu, signaler</span>
+          <span class="chip chip-in">Covoiturage : proposer, rechercher, réserver, annuler, noter le conducteur</span>
+          <span class="chip chip-in">Groupes : créer, rejoindre, quitter, séances, PDF, gestion des membres</span>
+          <span class="chip chip-in">Événements : publier, s'inscrire, capacité, rappel la veille</span>
+          <span class="chip chip-in">Messagerie temps réel 1-à-1 + notifications</span>
+          <span class="chip chip-in">Admin : utilisateurs, catégories, signalements, tableau de bord</span>
+          <span class="chip chip-in">ML : prix (régression linéaire → Random Forest) + recommandations TF-IDF</span>
+          <span class="chip chip-in">Swagger, seed de démonstration, tests</span>
+        </div>
+      </div>
+      <div class="elev-1 pad">
+        <div class="eyebrow"><i data-lucide="x-circle"></i>Exclu de cette construction</div>
+        <div class="stack">
+          <span class="chip chip-out">Application React Native / APK (voir Q1)</span>
+          <span class="chip chip-out">Déploiement en ligne (voir Q5)</span>
+          <span class="chip chip-out">Envoi d'e-mails réels (Mailpit local à la place)</span>
+          <span class="chip chip-out">Paiement en ligne des trajets / livres</span>
+          <span class="chip chip-out">Cartes et calcul d'itinéraire</span>
+          <span class="chip chip-out">Messagerie de groupe (le cahier dit 1-à-1)</span>
+        </div>
+        <div class="eyebrow" style="margin-top:18px"><i data-lucide="users"></i>Parties prenantes</div>
+        <div class="stack">
+          <div class="inset person"><span class="avatar">KA</span><div><div style="font-weight:600">Kaabi Ali</div><div class="muted" style="font-size:12px">Développeur, décide du périmètre</div></div></div>
+          <div class="inset person"><span class="avatar">JU</span><div><div style="font-weight:600">Jury / encadrant</div><div class="muted" style="font-size:12px">Valide selon le cahier des charges</div></div></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="elev-1 constraint"><div class="v">JavaScript</div><div class="l">de bout en bout (choix validé), Python pour le ML</div></div>
+        <div class="elev-1 constraint"><div class="v num">&lt; 1 s</div><div class="l">réponse API des pages principales (cahier §3)</div></div>
+        <div class="elev-1 constraint"><div class="v">Local</div><div class="l">Windows 11, 16 Go, Node 24, Docker 29</div></div>
+        <div class="elev-1 constraint"><div class="v">Français</div><div class="l">interface, messages d'erreur, e-mails</div></div>
+        <div class="elev-1 constraint"><div class="v">helmet · rate-limit · bcrypt</div><div class="l">exigences de sécurité explicites du cahier</div></div>
+      </div>
+    </div>
+
+    <div class="elev-1" style="margin-top:16px">
+      <div class="pad" style="padding-bottom:6px"><div class="eyebrow" style="margin:0"><i data-lucide="git-compare"></i>Ajustements après lecture du cahier des charges et de l'UML</div></div>
+      <div class="delta"><span class="from">FastAPI</span><i data-lucide="arrow-right"></i><span><b>Flask</b> : imposé par le cahier §4</span></div>
+      <div class="delta"><span class="from">zod</span><i data-lucide="arrow-right"></i><span><b>express-validator</b> + helmet + express-rate-limit (cahier §3)</span></div>
+      <div class="delta"><span class="from">passagers intégrés au trajet</span><i data-lucide="arrow-right"></i><span>collection <b>Reservation</b> (nbPlaces, statut) + <b>Avis</b>, conforme à l'UML</span></div>
+      <div class="delta"><span class="from">collection Club</span><i data-lucide="arrow-right"></i><span><code>Evenement.club</code> en texte + <code>organisateur</code> (UML), collection <b>Inscription</b> avec <code>rappelEnvoye</code></span></div>
+      <div class="delta"><span class="from">collection Conversation</span><i data-lucide="arrow-right"></i><span>Message 1-à-1 (expéditeur, destinataire, lu) + <code>cleConversation</code> calculée</span></div>
+      <div class="delta"><span class="from">pas de catégories</span><i data-lucide="arrow-right"></i><span><b>Categorie</b> CRUD admin, <code>Utilisateur.estBloque</code>, vérification e-mail</span></div>
+    </div>
+  </section>
+
+  <!-- 02 SYSTEM -->
+  <section id="system" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">02</span><div><h2>Architecture (niveau conteneurs C4)</h2><p>Quatre processus en local. Le navigateur ne parle qu'à Vite, qui relaie <code>/api</code> et <code>/socket.io</code> vers Express : même origine, donc cookie SameSite sans CORS.</p></div></div>
+    <div class="diagram">
+<pre class="mermaid">
+flowchart TB
+  V["Visiteur, étudiant, admin · Navigateur"]:::person
+  WEB["SPA web · React 19 + Vite · :5173"]:::container
+  subgraph API_B["Frontière de confiance serveur"]
+    API["API REST + Socket.io · Express 5 · :4000"]:::container
+    CRON["Tâches planifiées · node-cron"]:::container
+    UP[("Fichiers · /uploads")]:::store
+  end
+  subgraph DOCKER["docker compose"]
+    DB[("MongoDB 8 · replica set")]:::store
+    ML["ML · Flask + scikit-learn · :5001"]:::container
+    MAIL["Mailpit · SMTP :1025"]:::external
+  end
+  V -->|"HTTPS + WebSocket"| WEB
+  WEB -->|"proxy /api et /socket.io"| API
+  API -->|"lit / écrit"| DB
+  API -->|"POST /price, /recommend · 1,5 s"| ML
+  ML -->|"lit l'entraînement"| DB
+  API -->|"multer"| UP
+  API -->|"SMTP"| MAIL
+  CRON -->|"rappels, fin de trajets"| DB
+  classDef person fill:#E9EEFC,stroke:#2547D0,stroke-width:2px
+  classDef container fill:#FFFFFF,stroke:#2547D0,stroke-width:2px
+  classDef store fill:#FDF3E1,stroke:#A15C07,stroke-width:2px
+  classDef external fill:#F0F2F5,stroke:#5B6370,stroke-width:2px,stroke-dasharray:5 4
+  style API_B stroke:#C0352B,stroke-width:2px,stroke-dasharray:6 4
+</pre>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="border-color:#2547D0;background:var(--bg-1)"></span>conteneur applicatif</span>
+      <span><span class="sw" style="border-color:#A15C07;background:var(--amber-soft)"></span>stockage</span>
+      <span><span class="sw" style="border-color:#5B6370;border-style:dashed;background:var(--bg-2)"></span>système externe (dev)</span>
+      <span><span class="sw" style="border-color:#C0352B;border-style:dashed"></span>frontière de confiance : toute entrée validée ici</span>
+    </div>
+    <div class="grid g4" style="margin-top:16px">
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="folder-tree"></i>client/</div><div class="ink2" style="font-size:13px">Vite, React Router 7, TanStack Query + Axios, Context (auth, socket), shadcn/ui, sonner, Recharts</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="server"></i>server/</div><div class="ink2" style="font-size:13px">Express 5, Mongoose 8, express-validator, helmet, rate-limit, multer, socket.io, nodemailer, node-cron, swagger-ui-express</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="brain"></i>ml/</div><div class="ink2" style="font-size:13px">Flask, pandas, scikit-learn, joblib, pytest ; <code>train.py</code> écrit <code>metrics.json</code> vs baseline</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="box"></i>racine</div><div class="ink2" style="font-size:13px">docker-compose.yml, workspaces npm, <code>npm run dev</code> lance tout, <code>npm run seed</code></div></div>
+    </div>
+  </section>
+
+  <!-- 03 DATA -->
+  <section id="data" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">03</span><div><h2>Modèle de données</h2><p>Fidèle au diagramme de classes UML. MongoDB est la seule source de vérité ; les compteurs dérivés (places, inscrits, notes) sont maintenus de façon atomique.</p></div></div>
+    <div class="tabs" role="tablist" data-tabs="er">
+      <button class="on" role="tab" data-tab="er-1">Comptes, livres, covoiturage</button>
+      <button role="tab" data-tab="er-2">Groupes, événements, messagerie, modération</button>
+    </div>
+    <div class="pane" data-pane="er-1">
+    <div class="diagram">
+<pre class="mermaid">
+erDiagram
+  UTILISATEUR ||--o{ ANNONCE : publie
+  CATEGORIE ||--o{ ANNONCE : classe
+  UTILISATEUR ||--o{ TRAJET : conduit
+  TRAJET ||--o{ RESERVATION : concerne
+  UTILISATEUR ||--o{ RESERVATION : passager
+  RESERVATION ||--o| AVIS : "donne lieu a"
+  UTILISATEUR {
+    ObjectId _id
+    string email UK
+    string motDePasseHache
+    enum role "ETUDIANT ADMIN"
+    string filiere
+    string niveau
+    array matieres
+    array centresInteret
+    bool emailVerifie
+    bool estBloque
+    number noteMoyenne
+  }
+  ANNONCE {
+    ObjectId vendeur FK
+    ObjectId categorie FK
+    string titre
+    string matiere
+    enum etat "NEUF TRES_BON BON ACCEPTABLE"
+    number prix
+    object prixConseille "min max source"
+    array photos "url ordre, 0 a 5"
+    enum statut "DISPONIBLE VENDUE MASQUEE"
+  }
+  TRAJET {
+    ObjectId conducteur FK
+    string lieuDepart
+    string lieuArrivee
+    date dateDepart
+    number placesTotales
+    number placesDisponibles
+    number prix
+    enum statut "OUVERT COMPLET ANNULE TERMINE"
+  }
+  RESERVATION {
+    ObjectId trajet FK
+    ObjectId passager FK
+    number nbPlaces
+    enum statut "CONFIRMEE ANNULEE"
+  }
+  AVIS {
+    ObjectId reservation FK "unique"
+    number note "1 a 5"
+    string commentaire
+  }
+  CATEGORIE {
+    string nom UK
+    string description
+  }
+</pre>
+    </div>
+    </div>
+    <div class="pane" data-pane="er-2" hidden>
+    <div class="diagram">
+<pre class="mermaid">
+erDiagram
+  UTILISATEUR ||--o{ GROUPE : cree
+  UTILISATEUR ||--o{ EVENEMENT : organise
+  EVENEMENT ||--o{ INSCRIPTION : recoit
+  UTILISATEUR ||--o{ INSCRIPTION : "s inscrit"
+  UTILISATEUR ||--o{ MESSAGE : envoie
+  UTILISATEUR ||--o{ NOTIFICATION : recoit
+  UTILISATEUR ||--o{ SIGNALEMENT : signale
+  UTILISATEUR {
+    ObjectId _id
+    enum role "ETUDIANT ADMIN"
+    array matieres
+    array centresInteret
+  }
+  GROUPE {
+    string nom
+    string matiere
+    number capaciteMax
+    array membres "user role dateAdhesion"
+    array seances "date duree lieu sujet"
+    array documents "nomFichier url depose_par"
+  }
+  EVENEMENT {
+    ObjectId organisateur FK
+    string club
+    date dateDebut
+    number capacite
+    number nbInscrits
+    bool estPublic
+  }
+  INSCRIPTION {
+    ObjectId evenement FK
+    ObjectId utilisateur FK
+    bool rappelEnvoye
+  }
+  MESSAGE {
+    ObjectId expediteur FK
+    ObjectId destinataire FK
+    string cleConversation
+    string clientId "idempotence"
+    object contexte "type ref"
+    bool lu
+  }
+  NOTIFICATION {
+    ObjectId utilisateur FK
+    enum type "RESERVATION MESSAGE RAPPEL_EVENEMENT"
+    string cleDedup UK
+    bool lue
+  }
+  SIGNALEMENT {
+    enum typeContenu "ANNONCE TRAJET EVENEMENT MESSAGE"
+    ObjectId contenuId
+    enum statut "EN_ATTENTE TRAITE REJETE"
+    ObjectId traitePar FK
+  }
+</pre>
+    </div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="key-round"></i>Index uniques porteurs d'invariants</div>
+        <div class="stack" style="font-size:13px">
+          <span><code>utilisateurs.email</code> : un compte par adresse</span>
+          <span><code>reservations(trajet, passager)</code> partiel sur <code>CONFIRMEE</code> : pas de double réservation</span>
+          <span><code>inscriptions(evenement, utilisateur)</code> : une inscription par étudiant</span>
+          <span><code>avis.reservation</code> : une note par trajet effectué</span>
+          <span><code>messages(expediteur, clientId)</code> : un renvoi ne crée pas de doublon</span>
+          <span><code>notifications.cleDedup</code> : un rappel par inscription</span>
+        </div>
+      </div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="gauge"></i>Index de lecture (&lt; 1 s)</div>
+        <div class="stack" style="font-size:13px">
+          <span><code>annonces(statut, categorie, prix)</code> + index texte <code>titre, matiere</code></span>
+          <span><code>trajets(statut, dateDepart)</code> + texte <code>lieuDepart, lieuArrivee</code></span>
+          <span><code>messages(cleConversation, createdAt)</code></span>
+          <span><code>notifications(utilisateur, lue, createdAt)</code></span>
+          <span><code>evenements(dateDebut)</code>, <code>signalements(statut)</code></span>
+          <span>Pagination <code>?page=&amp;limit=</code>, limite max 50</span>
+        </div>
+      </div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="clock"></i>Temps et confidentialité</div>
+        <div class="stack" style="font-size:13px">
+          <span>Dates stockées en UTC, affichées en <code>Africa/Tunis</code> (UTC+1, sans heure d'été)</span>
+          <span>Tableau de bord : agrégats uniquement, aucun nom exporté vers le ML</span>
+          <span>Activité quotidienne : <code>activites(utilisateur, jour)</code> upsert, pour « utilisateurs actifs »</span>
+          <span>Suppression d'un compte : anonymisation + contenus masqués (pas de références orphelines)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 FLOWS -->
+  <section id="flows" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">04</span><div><h2>Flux critiques</h2><p>Les trois chemins d'écriture où un bug se voit le plus : surréservation, messages perdus ou dupliqués, prix conseillé indisponible.</p></div></div>
+    <div class="tabs" role="tablist" data-tabs="flows">
+      <button class="on" role="tab" data-tab="f-res">Réserver une place</button>
+      <button role="tab" data-tab="f-msg">Envoyer un message</button>
+      <button role="tab" data-tab="f-price">Prix conseillé</button>
+    </div>
+    <div class="pane" data-pane="f-res">
+      <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor E as Étudiant
+  participant UI as SPA (TanStack Query)
+  participant API as API Express
+  participant DB as MongoDB (transaction)
+  participant S as Socket.io
+  E->>UI: clique Réserver
+  UI->>UI: bouton passe à Réservé (optimiste)
+  UI->>API: POST /api/trajets/:id/reservations {nbPlaces}
+  API->>DB: startTransaction
+  API->>DB: findOneAndUpdate trajet si OUVERT et placesDisponibles >= n, $inc -n
+  alt places suffisantes
+    API->>DB: insert Reservation CONFIRMEE (index unique trajet+passager)
+    API->>DB: commit, statut COMPLET si 0 place
+    API->>S: notification RESERVATION vers user:conducteur
+    API-->>UI: 201 réservation
+    UI->>UI: invalide trajets + tableau de bord
+  else complet ou déjà réservé
+    API->>DB: abort
+    API-->>UI: 409 TRAJET_COMPLET ou DEJA_RESERVE
+    UI->>UI: annule l'état optimiste + toast en français
+  end
+</pre>
+      </div>
+    </div>
+    <div class="pane" data-pane="f-msg" hidden>
+      <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor A as Étudiant A
+  participant UA as SPA de A
+  participant API as Socket.io (API)
+  participant DB as MongoDB
+  participant UB as SPA de B
+  A->>UA: tape Entrée
+  UA->>UA: bulle affichée en attente, clientId = uuid
+  UA->>API: emit message:send {destinataire, texte, clientId}
+  API->>API: vérifie session, non bloqué, longueur max 2000
+  API->>DB: insert Message (unique expediteur+clientId)
+  alt nouveau
+    API->>DB: upsert Notification MESSAGE
+    API-->>UA: ack {ok, message}
+    API->>UB: emit message:new vers user:B
+    UB->>UB: conversation remontée, badge non lus +1
+  else doublon après reconnexion
+    API-->>UA: ack {ok, message existant}
+  end
+  Note over UA,API: Coupure : socket.io se reconnecte, la SPA refetch depuis le dernier message puis renvoie les clientId sans ack
+</pre>
+      </div>
+    </div>
+    <div class="pane" data-pane="f-price" hidden>
+      <div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+  autonumber
+  actor E as Étudiant
+  participant UI as Formulaire Publier
+  participant API as API Express
+  participant ML as Flask /price
+  E->>UI: saisit matière, état, année, prix neuf
+  UI->>API: GET /api/annonces/prix-conseille (debounce 400 ms)
+  API->>ML: POST /price, timeout 1,5 s
+  alt service disponible
+    ML-->>API: {min, max, modele: random_forest}
+    API-->>UI: fourchette, source ml
+  else délai dépassé ou erreur
+    API->>API: log ml_fallback, heuristique prixNeuf x coef état x décote âge
+    API-->>UI: fourchette, source fallback
+    UI->>UI: libellé estimation simplifiée
+  end
+  E->>UI: choisit son prix, publie
+  UI->>API: POST /api/annonces (multipart, 0 à 5 photos)
+</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 STATES -->
+  <section id="states" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">05</span><div><h2>Cycles de vie</h2><p>Énumérations de l'UML transformées en transitions autorisées. Toute autre transition renvoie 409.</p></div></div>
+    <div class="grid g2">
+      <div class="elev-1 pad"><div class="eyebrow">Trajet</div><div class="diagram" style="border:0;padding:0">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> OUVERT: publié
+  OUVERT --> COMPLET: dernière place réservée
+  COMPLET --> OUVERT: une réservation annulée
+  OUVERT --> ANNULE: conducteur annule
+  COMPLET --> ANNULE: conducteur annule
+  OUVERT --> TERMINE: date passée (cron)
+  COMPLET --> TERMINE: date passée (cron)
+  ANNULE --> [*]
+  TERMINE --> [*]: notation ouverte 7 jours
+</pre>
+      </div></div>
+      <div class="elev-1 pad"><div class="eyebrow">Annonce</div><div class="diagram" style="border:0;padding:0">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> DISPONIBLE: publiée
+  DISPONIBLE --> VENDUE: vendeur marque vendu
+  DISPONIBLE --> MASQUEE: admin supprime après signalement
+  VENDUE --> DISPONIBLE: vendeur annule la vente
+  MASQUEE --> [*]
+  VENDUE --> [*]
+</pre>
+      </div></div>
+      <div class="elev-1 pad"><div class="eyebrow">Signalement</div><div class="diagram" style="border:0;padding:0">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> EN_ATTENTE: étudiant signale
+  EN_ATTENTE --> TRAITE: admin supprime le contenu
+  EN_ATTENTE --> REJETE: admin rejette
+  TRAITE --> [*]
+  REJETE --> [*]
+</pre>
+      </div></div>
+      <div class="elev-1 pad"><div class="eyebrow">Compte utilisateur</div><div class="diagram" style="border:0;padding:0">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> NON_VERIFIE: inscription
+  NON_VERIFIE --> ACTIF: clic sur le lien e-mail
+  ACTIF --> BLOQUE: admin bloque
+  BLOQUE --> ACTIF: admin débloque
+  ACTIF --> SUPPRIME: admin supprime (anonymisé)
+  BLOQUE --> SUPPRIME: admin supprime
+  SUPPRIME --> [*]
+</pre>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 06 API & SCREENS -->
+  <section id="api" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">06</span><div><h2>Surface API et écrans</h2><p>Préfixe <code>/api</code>. Auth = cookie <code>httpOnly</code> ou en-tête <code>Bearer</code> (prêt pour le mobile). Erreurs : <code>{ error: { code, message, champs } }</code>, message en français.</p></div></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Ressource</th><th>Endpoints</th><th>Accès</th><th>Écran (maquette → route)</th></tr></thead>
+        <tbody>
+          <tr><td class="sub">auth</td><td><span class="m m-post">POST /auth/inscription</span><span class="m m-post">POST /auth/connexion</span><span class="m m-post">POST /auth/deconnexion</span><span class="m m-get">GET /auth/verifier/:jeton</span><span class="m m-post">POST /auth/mot-de-passe-oublie</span><span class="m m-post">POST /auth/reinitialiser</span><span class="m m-get">GET /auth/moi</span></td><td><span class="tag tag-mute">public</span> <span class="tag tag-amber">10 / 15 min / IP</span></td><td>connexion.html → <code>/connexion</code>, <code>/inscription</code>, <code>/reinitialiser</code></td></tr>
+          <tr><td class="sub">profil</td><td><span class="m m-patch">PATCH /utilisateurs/moi</span><span class="m m-post">POST /utilisateurs/moi/photo</span><span class="m m-patch">PATCH /utilisateurs/moi/mot-de-passe</span><span class="m m-get">GET /utilisateurs/:id</span></td><td><span class="tag tag-accent">étudiant</span></td><td>nouveau → <code>/profil</code></td></tr>
+          <tr><td class="sub">annonces</td><td><span class="m m-get">GET /annonces</span><span class="m m-get">GET /annonces/:id</span><span class="m m-get">GET /annonces/prix-conseille</span><span class="m m-post">POST /annonces</span><span class="m m-patch">PATCH /annonces/:id</span><span class="m m-post">POST /annonces/:id/vendue</span><span class="m m-del">DELETE /annonces/:id</span></td><td><span class="tag tag-accent">étudiant</span> <span class="tag tag-mute">propriétaire pour écrire</span></td><td>livres.html → <code>/livres</code>, <code>/livres/:id</code></td></tr>
+          <tr><td class="sub">trajets</td><td><span class="m m-get">GET /trajets</span><span class="m m-post">POST /trajets</span><span class="m m-patch">PATCH /trajets/:id</span><span class="m m-post">POST /trajets/:id/annuler</span><span class="m m-post">POST /trajets/:id/reservations</span><span class="m m-del">DELETE /reservations/:id</span><span class="m m-post">POST /reservations/:id/avis</span></td><td><span class="tag tag-accent">étudiant</span></td><td>covoiturage.html → <code>/covoiturage</code>, <code>/covoiturage/:id</code></td></tr>
+          <tr><td class="sub">groupes</td><td><span class="m m-get">GET /groupes</span><span class="m m-get">GET /groupes/recommandes</span><span class="m m-post">POST /groupes</span><span class="m m-post">POST /groupes/:id/membres</span><span class="m m-del">DELETE /groupes/:id/membres/:uid</span><span class="m m-post">POST /groupes/:id/seances</span><span class="m m-post">POST /groupes/:id/documents</span><span class="m m-del">DELETE /groupes/:id</span></td><td><span class="tag tag-accent">étudiant</span> <span class="tag tag-mute">créateur pour gérer</span></td><td>groupes.html → <code>/groupes</code>, <code>/groupes/:id</code></td></tr>
+          <tr><td class="sub">événements</td><td><span class="m m-get">GET /evenements</span><span class="m m-post">POST /evenements</span><span class="m m-patch">PATCH /evenements/:id</span><span class="m m-post">POST /evenements/:id/inscription</span><span class="m m-del">DELETE /evenements/:id/inscription</span><span class="m m-get">GET /evenements/:id/inscrits</span></td><td><span class="tag tag-mute">publics : visiteur</span> <span class="tag tag-accent">étudiant</span></td><td>evenements.html → <code>/evenements</code> ; index.html → <code>/</code></td></tr>
+          <tr><td class="sub">messagerie</td><td><span class="m m-get">GET /conversations</span><span class="m m-get">GET /conversations/:uid/messages</span><span class="m m-post">POST /conversations/:uid/lu</span><span class="m m-ws">WS message:send</span><span class="m m-ws">WS message:new</span><span class="m m-ws">WS typing</span></td><td><span class="tag tag-accent">étudiant</span></td><td>messagerie.html → <code>/messages</code>, <code>/messages/:uid</code></td></tr>
+          <tr><td class="sub">notifications</td><td><span class="m m-get">GET /notifications</span><span class="m m-post">POST /notifications/lues</span><span class="m m-ws">WS notification:new</span></td><td><span class="tag tag-accent">étudiant</span></td><td>dashboard.html → <code>/accueil</code> + cloche</td></tr>
+          <tr><td class="sub">signalements</td><td><span class="m m-post">POST /signalements</span><span class="m m-get">GET /admin/signalements</span><span class="m m-post">POST /admin/signalements/:id/traiter</span><span class="m m-post">POST /admin/signalements/:id/rejeter</span></td><td><span class="tag tag-accent">étudiant</span> <span class="tag tag-red">admin</span></td><td>admin.html → <code>/admin/moderation</code></td></tr>
+          <tr><td class="sub">admin</td><td><span class="m m-get">GET /admin/utilisateurs</span><span class="m m-post">POST /admin/utilisateurs/:id/bloquer</span><span class="m m-del">DELETE /admin/utilisateurs/:id</span><span class="m m-get">GET /admin/stats?periode=</span><span class="m m-get">GET/POST/PATCH/DELETE /admin/categories</span></td><td><span class="tag tag-red">admin</span></td><td>admin.html → <code>/admin</code>, <code>/admin/utilisateurs</code>, <code>/admin/categories</code></td></tr>
+          <tr><td class="sub">système</td><td><span class="m m-get">GET /health</span><span class="m m-get">GET /docs</span><span class="m m-get">GET /uploads/*</span></td><td><span class="tag tag-mute">public</span></td><td>Swagger UI</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid g4" style="margin-top:16px">
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="command"></i>Clavier</div><div class="ink2" style="font-size:13px">Ctrl+K palette (pages, livres, trajets, groupes), Échap ferme, flèches dans les listes de conversations</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="loader"></i>Chargement</div><div class="ink2" style="font-size:13px">Squelettes aux dimensions finales, aucun décalage de mise en page, pas de spinner plein écran</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="zap"></i>Optimiste</div><div class="ink2" style="font-size:13px">Réserver, s'inscrire, rejoindre, envoyer : instantané, rollback + toast si le serveur refuse</div></div>
+      <div class="elev-1 pad"><div class="eyebrow"><i data-lucide="smartphone"></i>Responsive</div><div class="ink2" style="font-size:13px">360 px à 1440 px ; barre latérale → tiroir sur mobile ; clair et sombre ; mouvement réduit respecté</div></div>
+    </div>
+  </section>
+
+  <!-- 07 DECISIONS -->
+  <section id="decisions" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">07</span><div><h2>Décisions d'architecture</h2><p>Confiance : rouge &lt; 0.7, ambre 0.7 à 0.85, vert &gt; 0.85. Réversibilité : E facile, H difficile, I irréversible.</p></div></div>
+    <div class="grid g3" id="dec-grid"></div>
+  </section>
+
+  <!-- 08 FAILURES -->
+  <section id="failures" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">08</span><div><h2>Pannes et reprise</h2><p>Une ligne par mode de panne. Vert : reprise automatique. Ambre : étape manuelle documentée.</p></div></div>
+    <div class="grid" style="grid-template-columns:minmax(0,1fr)">
+      <div class="elev-1 pad">
+        <div class="eyebrow"><i data-lucide="grid-3x3"></i>Carte de chaleur : probabilité × impact</div>
+        <div class="heat">
+          <div></div><div class="h">Exécution</div><div class="h">Données</div><div class="h">Temps</div><div class="h">Intégration</div>
+          <div class="r">Réservations</div><div class="c lv1">faible</div><div class="c lv3">élevé</div><div class="c lv2">moyen</div><div class="c lv0">—</div>
+          <div class="r">Messagerie</div><div class="c lv2">moyen</div><div class="c lv2">moyen</div><div class="c lv1">faible</div><div class="c lv2">moyen</div>
+          <div class="r">Service ML</div><div class="c lv2">moyen</div><div class="c lv1">faible</div><div class="c lv1">faible</div><div class="c lv2">moyen</div>
+          <div class="r">Auth</div><div class="c lv1">faible</div><div class="c lv3">élevé</div><div class="c lv1">faible</div><div class="c lv1">faible</div>
+          <div class="r">Rappels (cron)</div><div class="c lv1">faible</div><div class="c lv1">faible</div><div class="c lv2">moyen</div><div class="c lv1">faible</div>
+          <div class="r">Fichiers</div><div class="c lv1">faible</div><div class="c lv2">moyen</div><div class="c lv0">—</div><div class="c lv0">—</div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Sous-système</th><th>Mode de panne</th><th>Détection</th><th>Auto</th><th>Reprise manuelle</th><th>Rejeu</th></tr></thead>
+          <tbody>
+            <tr><td class="sub">MongoDB</td><td>Conteneur arrêté, primaire non élu</td><td><code>/api/health</code> 503, log <code>db_disconnected</code></td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td><code>docker compose up -d mongo</code> ; si rs non initialisé : <code>npm run db:init</code></td><td>Requêtes rejouées par l'utilisateur ; TanStack Query refait les GET</td></tr>
+            <tr><td class="sub">Réservations</td><td>Deux étudiants prennent la dernière place</td><td>Taux de 409 <code>TRAJET_COMPLET</code> ; script d'invariants</td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td><code>npm run check:invariants</code> recalcule <code>placesDisponibles = total − Σ confirmées</code> et répare</td><td>Transaction : tout ou rien</td></tr>
+            <tr><td class="sub">Inscriptions</td><td>Capacité dépassée</td><td>Même script, <code>nbInscrits</code> vs comptage</td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td>Idem, réparation par recomptage</td><td>Index unique : réinscription sans effet</td></tr>
+            <tr><td class="sub">Service ML</td><td>Arrêté, lent, modèle absent</td><td>Log <code>ml_fallback</code>, compteur dans <code>/api/health</code></td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td><code>docker compose restart ml</code> ; modèle absent : <code>npm run ml:train</code></td><td>Heuristique de secours ; recommandations par popularité</td></tr>
+            <tr><td class="sub">Messagerie</td><td>Socket coupé pendant l'envoi</td><td>Événement <code>disconnect</code>, bulle « non envoyé »</td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td>Bouton « Réessayer » sur la bulle</td><td>Renvoi par <code>clientId</code>, dédupliqué par index unique</td></tr>
+            <tr><td class="sub">Rappels</td><td>Tâche plantée ou exécutée deux fois</td><td>Log par exécution : <code>reminders_sent=n</code></td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td>Aucune : le passage suivant (15 min) rattrape</td><td>Bascule atomique <code>rappelEnvoye</code> + <code>cleDedup</code></td></tr>
+            <tr><td class="sub">E-mails</td><td>Mailpit arrêté</td><td>Log <code>mail_failed</code> + code</td><td><span class="sev"><span class="dot" style="background:var(--amber)"></span>non</span></td><td>Relancer Mailpit ; l'utilisateur clique « Renvoyer le lien »</td><td>Jetons régénérés, l'ancien invalidé</td></tr>
+            <tr><td class="sub">Fichiers</td><td>Type interdit, trop gros, orphelins</td><td>multer → 413 / 415</td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td><code>npm run uploads:gc</code> supprime les fichiers non référencés</td><td>Upload refait par l'utilisateur</td></tr>
+            <tr><td class="sub">Auth</td><td>Jeton expiré, compte bloqué, force brute</td><td>401 / 403 / 429</td><td><span class="sev"><span class="dot" style="background:var(--green)"></span>oui</span></td><td>Admin débloque ; changer <code>JWT_SECRET</code> invalide toutes les sessions</td><td>Redirection <code>/connexion?retour=</code></td></tr>
+            <tr><td class="sub">Données de démo</td><td>Seed corrompu ou partiel</td><td><code>npm run check:invariants</code></td><td><span class="sev"><span class="dot" style="background:var(--amber)"></span>non</span></td><td><code>npm run seed -- --reset</code> (base locale uniquement, refuse si NODE_ENV=production)</td><td>Seed idempotent, graine aléatoire fixe</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 TIMELINE -->
+  <section id="timeline" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">09</span><div><h2>Séquence d'implémentation</h2><p>Chaque étape est testable et se termine par un commit taggé (<code>step-N</code>) : c'est la limite de retour arrière.</p></div></div>
+    <div class="ribbon" id="ribbon"></div>
+    <div class="lanes" aria-hidden="true">
+      <div class="lane" style="grid-column:1/3;background:var(--accent)"></div>
+      <div class="lane" style="grid-column:3/4;background:var(--accent-soft)"></div>
+      <div class="lane" style="grid-column:4/5;background:var(--amber)"></div>
+      <div class="lane" style="grid-column:5/12;background:var(--accent-soft)"></div>
+      <div class="lane" style="grid-column:12/13;background:var(--green)"></div>
+    </div>
+    <div class="legend">
+      <span><span class="step-flag" style="display:inline-flex;width:16px;height:16px;border-radius:999px;background:var(--blue)"></span>point de contrôle (démo possible, tag git)</span>
+      <span><span style="display:inline-flex;width:16px;height:16px;border-radius:999px;background:var(--red)"></span>arrêt possible : livrer sans la partie à risque</span>
+      <span><span class="sw" style="border-color:var(--amber);background:var(--amber-soft)"></span>étape ML</span>
+      <span><span class="sw" style="border-color:var(--green);background:var(--green-soft)"></span>étape temps réel / finition</span>
+    </div>
+  </section>
+
+  <!-- 10 QUESTIONS -->
+  <section id="questions" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">10</span><div><h2>Questions ouvertes</h2><p>Points que le cahier des charges ne tranche pas pour cette construction. Les choix sont enregistrés automatiquement.</p></div></div>
+    <div class="grid g2">
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Q1</span><span class="muted" style="font-size:12px">mobile</span></div>
+        <div class="qa-title">L'application mobile (APK) fait-elle partie de cette construction ?</div>
+        <p class="qa-body">Le cahier liste un APK Android en livrable. Il prévoit aussi une solution de repli : une version web responsive prioritaire si le mobile prend du retard.</p>
+        <div class="qa-impact"><b>Impact réel :</b> l'API accepte déjà l'en-tête Bearer, donc une app Expo pourra s'y brancher plus tard sans rien changer côté serveur. L'inclure maintenant ajoute environ 30 % de travail et repousse la démo web.</div>
+        <div class="qa-options">
+          <label class="qa-option"><input type="radio" name="Q1" value="phase suivante" data-q="Q1"><div><div class="qa-option-title">Phase suivante, après le web <span class="tag tag-accent">recommandé</span></div><div class="qa-option-desc">Web + API + ML d'abord, terminés et testés. Expo réutilise ensuite la même API.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q1" value="inclure maintenant" data-q="Q1"><div><div class="qa-option-title">L'inclure maintenant</div><div class="qa-option-desc">App Expo (accueil, livres, trajets, messages) construite en parallèle. Démo plus tardive.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q1" value="web responsive seulement" data-q="Q1"><div><div class="qa-option-title">Web responsive uniquement</div><div class="qa-option-desc">Pas d'APK. Correspond au plan de repli du cahier, mais un livrable manque.</div></div></label>
+        </div>
+        <textarea class="qa-notes" data-q-notes="Q1" rows="1" placeholder="Notes (facultatif)"></textarea>
+      </div>
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Q2</span><span class="muted" style="font-size:12px">inscription</span></div>
+        <div class="qa-title">Faut-il vérifier l'e-mail avant d'utiliser l'application ?</div>
+        <p class="qa-body">L'UML inclut « Vérifier l'e-mail universitaire » à l'inscription. La question est de savoir si un compte non vérifié peut déjà naviguer.</p>
+        <div class="qa-impact"><b>Impact réel :</b> en mode strict, la démo demande d'ouvrir Mailpit (localhost:8025) pour cliquer sur le lien. Les comptes du seed sont déjà vérifiés, donc la connexion de démo reste immédiate.</div>
+        <div class="qa-options">
+          <label class="qa-option"><input type="radio" name="Q2" value="strict" data-q="Q2"><div><div class="qa-option-title">Obligatoire avant toute action <span class="tag tag-accent">recommandé</span></div><div class="qa-option-desc">Écran « Vérifiez votre boîte » avec un bouton de renvoi. Seules les adresses réelles du campus entrent.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q2" value="lecture seule" data-q="Q2"><div><div class="qa-option-title">Navigation libre, publication bloquée</div><div class="qa-option-desc">Un bandeau invite à vérifier ; publier, réserver et écrire exigent la vérification.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q2" value="aucune" data-q="Q2"><div><div class="qa-option-title">Pas de vérification</div><div class="qa-option-desc">Seul le domaine @campus.tn est contrôlé. Plus simple, mais n'importe qui peut taper une adresse inventée. <span class="tag tag-red">écart au cahier</span></div></div></label>
+        </div>
+        <textarea class="qa-notes" data-q-notes="Q2" rows="1" placeholder="Notes (facultatif)"></textarea>
+      </div>
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Q3</span><span class="muted" style="font-size:12px">événements</span></div>
+        <div class="qa-title">Qui peut publier un événement de club ?</div>
+        <p class="qa-body">Le cahier dit « les clubs publient », mais l'UML n'a que deux rôles (ETUDIANT, ADMIN) et un champ texte <code>club</code>.</p>
+        <div class="qa-impact"><b>Impact réel :</b> si tout étudiant peut publier, n'importe qui peut créer un faux événement « Club IEEE ». La modération par signalement le rattrape, mais après coup.</div>
+        <div class="qa-options">
+          <label class="qa-option"><input type="radio" name="Q3" value="tout etudiant" data-q="Q3"><div><div class="qa-option-title">Tout étudiant, avec signalement <span class="tag tag-accent">recommandé</span></div><div class="qa-option-desc">Conforme à l'UML. Le nom du club est libre, l'organisateur est affiché sur la fiche.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q3" value="responsables de club" data-q="Q3"><div><div class="qa-option-title">Responsables de club désignés par l'admin</div><div class="qa-option-desc">Ajoute une liste de clubs et un attribut <code>clubsGeres</code>. Plus sûr, mais s'écarte de l'UML.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q3" value="validation admin" data-q="Q3"><div><div class="qa-option-title">Tout étudiant, avec validation de l'admin</div><div class="qa-option-desc">Statut « en attente » avant publication. Un écran de modération en plus.</div></div></label>
+        </div>
+        <textarea class="qa-notes" data-q-notes="Q3" rows="1" placeholder="Notes (facultatif)"></textarea>
+      </div>
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Q4</span><span class="muted" style="font-size:12px">tableau de bord</span></div>
+        <div class="qa-title">Le tableau de bord analytique : dans l'app, dans Streamlit, ou les deux ?</div>
+        <p class="qa-body">Le cahier cite « Pandas, agrégations MongoDB, Streamlit / Plotly ». La maquette, elle, montre le tableau de bord dans la page Administration.</p>
+        <div class="qa-impact"><b>Impact réel :</b> la page admin dans React suffit pour la démo. Streamlit est utile pour le rapport du membre Data, car il montre pandas et Plotly sur les mêmes données, mais c'est un quatrième serveur à lancer.</div>
+        <div class="qa-options">
+          <label class="qa-option"><input type="radio" name="Q4" value="app + notebook" data-q="Q4"><div><div class="qa-option-title">Page admin + notebook d'analyse <span class="tag tag-accent">recommandé</span></div><div class="qa-option-desc">Graphiques Recharts dans l'app ; <code>ml/notebooks/analyse.ipynb</code> pour le rapport.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q4" value="app + streamlit" data-q="Q4"><div><div class="qa-option-title">Page admin + application Streamlit</div><div class="qa-option-desc">Ajoute <code>ml/dashboard.py</code> (lecture seule sur Mongo, :8501).</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q4" value="app seule" data-q="Q4"><div><div class="qa-option-title">Page admin uniquement</div><div class="qa-option-desc">Le moins de pièces mobiles.</div></div></label>
+        </div>
+        <textarea class="qa-notes" data-q-notes="Q4" rows="1" placeholder="Notes (facultatif)"></textarea>
+      </div>
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Q5</span><span class="muted" style="font-size:12px">déploiement</span></div>
+        <div class="qa-title">L'application doit-elle être en ligne à la fin de cette construction ?</div>
+        <p class="qa-body">Le cahier liste « application web déployée » et MongoDB Atlas. Le déploiement suppose des comptes et des secrets qui vous appartiennent.</p>
+        <div class="qa-impact"><b>Impact réel :</b> le code est prêt pour la production dans les deux cas (variables d'environnement, Atlas compatible avec le replica set). Le choix porte seulement sur le fait que je crée ou non les fichiers de configuration d'hébergement maintenant.</div>
+        <div class="qa-options">
+          <label class="qa-option"><input type="radio" name="Q5" value="local" data-q="Q5"><div><div class="qa-option-title">Local d'abord, déploiement plus tard <span class="tag tag-accent">recommandé</span></div><div class="qa-option-desc">Docker compose + <code>npm run dev</code>. Vous déployez quand les comptes sont prêts.</div></div></label>
+          <label class="qa-option"><input type="radio" name="Q5" value="preparer" data-q="Q5"><div><div class="qa-option-title">Préparer la configuration de déploiement</div><div class="qa-option-desc">Dockerfiles de production + guide Atlas / Render. Vous lancez le déploiement vous-même.</div></div></label>
+        </div>
+        <textarea class="qa-notes" data-q-notes="Q5" rows="1" placeholder="Notes (facultatif)"></textarea>
+      </div>
+
+      <div class="elev-1 qa-card">
+        <div class="row" style="justify-content:space-between"><span class="tag tag-mute">Notes</span><span class="muted" style="font-size:12px">libre</span></div>
+        <div class="qa-title">Autre chose à changer dans ce plan ?</div>
+        <p class="qa-body">Un module à retirer, une priorité à modifier, une contrainte du jury que je ne connais pas.</p>
+        <textarea class="qa-notes" data-notes rows="6" placeholder="Demandes de modification…"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 APPROVALS -->
+  <section id="approvals" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">11</span><div><h2>Validations</h2><p>Engagements coûteux à défaire une fois le code écrit. Cochez ceux que vous acceptez.</p></div></div>
+    <div class="grid g2">
+      <label class="elev-1 approve"><input type="checkbox" data-approve="modeleUML"><div><div class="t">Le modèle de données suit le diagramme de classes UML</div><div class="d">Collections séparées pour Reservation, Inscription, Avis, Signalement ; membres, séances et documents intégrés dans Groupe (cahier §4).</div><div class="cost">Coût d'un retour : migration des données + réécriture des routes concernées.</div></div></label>
+      <label class="elev-1 approve"><input type="checkbox" data-approve="replicaSet"><div><div class="t">MongoDB en replica set à un nœud (transactions)</div><div class="d">Nécessaire pour réserver une place et décrémenter les places de façon atomique. Atlas fonctionne de la même façon.</div><div class="cost">Coût d'un retour : remplacer les transactions par des compensations manuelles.</div></div></label>
+      <label class="elev-1 approve"><input type="checkbox" data-approve="etatClient"><div><div class="t">TanStack Query + Context au lieu de Redux Toolkit</div><div class="d">Le cahier autorise « Context / Redux Toolkit ». TanStack Query gère le cache, les mises à jour optimistes et le refetch ; Context garde la session et le socket.</div><div class="cost">Coût d'un retour : réécriture de la couche données de chaque page.</div></div></label>
+      <label class="elev-1 approve"><input type="checkbox" data-approve="donneesSynthetiques"><div><div class="t">Modèles ML entraînés d'abord sur des données synthétiques</div><div class="d">Solution prévue par le cahier (§7, risques). Le prix est affiché comme « estimation », et <code>metrics.json</code> compare MAE / RMSE et précision@k aux baselines.</div><div class="cost">Coût d'un retour : faible, réentraînement avec <code>npm run ml:train</code>.</div></div></label>
+    </div>
+  </section>
+
+  <!-- 12 READINESS -->
+  <section id="readiness" class="sec elev-2">
+    <div class="sec-head"><span class="sec-num">12</span><div><h2>Prêt pour la démo</h2><p>Ce qui prouve que l'application est correcte, pas seulement qu'elle démarre. Tout est livré dans cette construction.</p></div></div>
+    <div class="grid g3">
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Santé : <code>/api/health</code></div><div class="d">État Mongo, ML, SMTP, nombre de replis ML depuis le démarrage</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Invariants : <code>npm run check:invariants</code></div><div class="d">Places, inscrits, notes moyennes recalculés ; code de sortie 1 si écart</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Journaux structurés (pino)</div><div class="d">Identifiant de requête, durée, code ; alerte visuelle si p95 &gt; 1 s en dev</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Tests API (Vitest + supertest)</div><div class="d">Mongo en mémoire (replica set) : auth, réservation concurrente, capacité, permissions</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Tests ML (pytest)</div><div class="d">Le modèle bat la baseline (MAE) ; la précision@5 bat la popularité</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Parcours E2E (Playwright)</div><div class="d">Inscription → vérification → publier un livre → réserver → écrire au conducteur</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Sauvegarde : <code>npm run db:backup</code></div><div class="d">mongodump horodaté dans <code>backups/</code> (exigence §3 Fiabilité)</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Runbook : README « En cas de problème »</div><div class="d">Une entrée par ligne du tableau des pannes, avec la commande exacte</div></div></div>
+      <div class="elev-1 ready"><span class="box ok"><i data-lucide="check"></i></span><div><div class="t">Critère de retour arrière</div><div class="d">Un test rouge ou un invariant cassé après une étape → <code>git checkout step-(N-1)</code></div></div></div>
+    </div>
+
+    <div class="elev-3" style="margin-top:24px;padding:24px">
+      <div class="score">
+        <div><div class="eyebrow" style="margin-bottom:6px">Confiance globale</div><div class="score-big num">8<span class="muted" style="font-size:28px">/10</span></div></div>
+        <div>
+          <div class="score-row"><span class="k">Hypothèse la plus risquée</span><span>Les wheels scikit-learn pour Python 3.14 sous Windows : contourné en exécutant le ML dans Docker (python:3.12).</span></div>
+          <div class="score-row"><span class="k">Décision la moins réversible</span><span>Le modèle de données (collections séparées vs intégrées), figé dès l'étape 1.</span></div>
+          <div class="score-row"><span class="k">Classe de bug attendue si on se trompe</span><span>Compteurs dérivés désynchronisés (places, inscrits, non lus), qui se voient pendant la démo.</span></div>
+          <div class="score-row"><span class="k">Cause d'incident la plus probable</span><span>Replica set non initialisé après un <code>docker compose down -v</code> : les transactions échouent. <code>npm run db:init</code> le détecte et le répare.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="end">campushub-mern · viz v1</footer>
+</main>
+
+<div id="ds-panel">
+  <div id="ds-detail" class="elev-3 hidden">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px"><b>Vos décisions</b><button id="ds-close" class="icon-btn" style="width:28px;height:28px" aria-label="Fermer"><i data-lucide="x"></i></button></div>
+    <div id="ds-summary"></div>
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
+    <div class="row"><button id="ds-reset" class="btn">Tout réinitialiser</button><button id="ds-copy" class="btn btn-accent">Copier le JSON</button></div>
+  </div>
+  <button id="ds-toggle" class="elev-3"><span class="dot" style="background:var(--accent)"></span><span id="ds-counter">Décisions · 0 / 9</span><span id="ds-saved-mini" class="mono muted">—</span></button>
+</div>
+
+<script>
+const DECISIONS = [
+  { topic: 'Base de données', choice: 'MongoDB 8 + Mongoose', why: 'Imposé par le cahier (le « M » de MERN) ; agrégations utiles pour le tableau de bord.', conf: 0.9, rev: 'H', rej: [['PostgreSQL', 'hors stack MERN'], ['SQLite', 'pas de transactions multi-documents ni d\'agrégations riches']] },
+  { topic: 'Front-end', choice: 'React 19 + Vite + React Router 7', why: 'Imposé par le cahier ; SPA pure, aucun besoin de rendu serveur pour une app derrière connexion.', conf: 0.9, rev: 'H', rej: [['Next.js', 'SSR inutile, s\'écarte du MERN classique attendu par le jury'], ['Create React App', 'abandonné']] },
+  { topic: 'Système d\'interface', choice: 'Tailwind v4 + shadcn/ui (JS)', why: 'Primitives accessibles (dialogues, menus, palette de commandes) ; les jetons de la maquette deviennent les variables CSS shadcn.', conf: 0.85, rev: 'E', rej: [['MUI / Chakra', 'look générique, éloigné de la maquette'], ['CSS maison seul', 'accessibilité des dialogues et menus à refaire']] },
+  { topic: 'État client', choice: 'TanStack Query + Axios + Context', why: 'Cache, invalidation et mises à jour optimistes intégrés ; Context pour la session et le socket. Autorisé par le cahier.', conf: 0.8, rev: 'E', rej: [['Redux Toolkit + RTK Query', 'plus de boilerplate pour le même résultat'], ['useEffect + fetch', 'pas de cache, chargements en double']], flag: 'Le cahier cite Context / Redux : voir la validation 3' },
+  { topic: 'Authentification', choice: 'JWT en cookie httpOnly + Bearer accepté', why: 'Le cookie protège du vol par XSS côté web ; le Bearer prépare l\'app mobile. bcrypt coût 12, jetons e-mail hachés (sha256), expiration 1 h.', conf: 0.8, rev: 'E', rej: [['JWT en localStorage', 'lisible par tout script injecté'], ['Sessions serveur + store', 'état supplémentaire, moins adapté au mobile'], ['Refresh token tournant', 'complexité injustifiée pour une démo locale']] },
+  { topic: 'Validation et durcissement', choice: 'express-validator + helmet + express-rate-limit', why: 'Exigés nommément par le cahier §3 ; validation à chaque route, limite 10 tentatives / 15 min sur /auth.', conf: 0.9, rev: 'E', rej: [['zod', 'non cité par le cahier'], ['Joi', 'idem, aucun gain ici']] },
+  { topic: 'Concurrence des places', choice: 'Transaction Mongo + décrément conditionnel', why: 'findOneAndUpdate avec placesDisponibles >= n puis insertion de la réservation dans la même transaction : la surréservation devient impossible.', conf: 0.85, rev: 'E', rej: [['Lire puis écrire', 'course entre deux clics, surréservation'], ['Décrément sans transaction + compensation', 'fonctionne, mais une panne entre les deux étapes laisse un écart']] },
+  { topic: 'Service ML', choice: 'Flask + scikit-learn dans Docker (Python 3.12)', why: 'Flask imposé par le cahier ; Docker évite les problèmes de wheels sous Python 3.14 / Windows. Régression linéaire puis Random Forest, TF-IDF + cosinus.', conf: 0.7, rev: 'E', rej: [['Heuristiques en Node', 'ne répond pas à l\'objectif ML du cahier'], ['FastAPI', 'le cahier impose Flask'], ['TensorFlow.js', 'disproportionné pour de la régression tabulaire']], flag: 'Données synthétiques au départ : voir la validation 4' },
+  { topic: 'Temps réel', choice: 'Socket.io (rooms par utilisateur)', why: 'Messages et notifications instantanés, indicateur de saisie, reconnexion automatique ; ack + clientId pour l\'idempotence.', conf: 0.8, rev: 'E', rej: [['Polling REST', 'retard visible, requêtes inutiles'], ['Server-Sent Events', 'unidirectionnel, il faudrait REST pour l\'envoi']] },
+  { topic: 'E-mails', choice: 'nodemailer → Mailpit (local)', why: 'Vérification, réinitialisation et rappels démontrables : boîte de réception web sur :8025, sans identifiants SMTP réels.', conf: 0.9, rev: 'E', rej: [['SMTP réel (Gmail)', 'secrets, risque de spam, blocages'], ['console.log seul', 'impossible de cliquer sur le lien en démo']] },
+  { topic: 'Rappels et tâches', choice: 'node-cron dans le processus API', why: 'Toutes les 15 min : rappels J-1 (bascule atomique de rappelEnvoye), trajets passés en TERMINE. Aucun Redis à ajouter.', conf: 0.85, rev: 'E', rej: [['BullMQ + Redis', 'un service de plus pour deux tâches'], ['Agenda', 'abandonné']] },
+  { topic: 'Fichiers', choice: 'multer sur disque local', why: 'Zéro infrastructure ; liste blanche de types MIME, 5 Mo par image, 20 Mo par PDF, noms aléatoires.', conf: 0.8, rev: 'E', rej: [['GridFS', 'complique la diffusion des images'], ['Cloudinary / S3', 'comptes et secrets externes']] },
+  { topic: 'Documentation API', choice: 'swagger-ui-express + openapi.yaml', why: 'Exigé par le cahier ; un seul fichier versionné, servi sur /api/docs, contrôlé par un test contre les routes.', conf: 0.8, rev: 'E', rej: [['swagger-jsdoc (commentaires)', 'documentation dispersée dans le code'], ['Postman seul', 'non navigable par le jury']] },
+  { topic: 'Tests', choice: 'Vitest + supertest + mongodb-memory-server, pytest, Playwright', why: 'Chaque test cible une panne précise : surréservation, permissions, doublon de message, modèle sous la baseline.', conf: 0.85, rev: 'E', rej: [['Jest', 'configuration ESM plus lourde'], ['Cypress', 'plus lent, un seul navigateur en gratuit']] }
+];
+const STEPS = [
+  { id: 'S0', t: 'Socle du monorepo', d: 'client/, server/, ml/, docker compose (mongo rs, ml, mailpit), npm run dev', cp: true },
+  { id: 'S1', t: 'API cœur + auth', d: 'Config, erreurs, validation, inscription, vérification, reset, JWT, tests' },
+  { id: 'S2', t: 'Coquille web', d: 'Jetons, layout, Ctrl+K, thème, accueil public, connexion / inscription', cp: true },
+  { id: 'S3', t: 'Livres', d: 'CRUD, photos, filtres, pagination, vendu, catégories', ml: false },
+  { id: 'S4', t: 'Prix conseillé', d: 'Flask /price, entraînement, métriques vs baseline, repli', ml: true, ks: true },
+  { id: 'S5', t: 'Covoiturage', d: 'Trajets, réservations en transaction, annulation, avis', cp: true },
+  { id: 'S6', t: 'Groupes', d: 'Membres, séances, PDF, gestion du groupe' },
+  { id: 'S7', t: 'Événements', d: 'Publication, inscription avec capacité, rappels cron' },
+  { id: 'S8', t: 'Messagerie', d: 'Socket.io, conversations, non lus, notifications en direct', rt: true },
+  { id: 'S9', t: 'Recommandations', d: 'TF-IDF /recommend, précision@k, accueil + groupes', ml: true, ks: true },
+  { id: 'S10', t: 'Administration', d: 'Stats par période, utilisateurs, catégories, modération' },
+  { id: 'S11', t: 'Finition et preuves', d: 'Seed, E2E, invariants, Swagger, a11y, README', rt: true, cp: true }
+];
+function confClass(c) { return c < 0.7 ? 'c-low' : c <= 0.85 ? 'c-mid' : 'c-high'; }
+document.getElementById('dec-grid').innerHTML = DECISIONS.map(function (d) {
+  return '<div class="elev-1 dec">' +
+    '<div class="dec-top"><div><div class="dec-topic">' + d.topic + '</div><div class="dec-choice">' + d.choice + '</div></div><span class="rev rev-' + d.rev + '" title="Réversibilité">' + d.rev + '</span></div>' +
+    '<p class="dec-why">' + d.why + '</p>' +
+    '<div class="conf ' + confClass(d.conf) + '"><span class="muted" style="font-size:12px">Confiance</span><div class="conf-bar"><span style="width:' + Math.round(d.conf * 100) + '%"></span></div><span class="v num">' + d.conf.toFixed(2) + '</span></div>' +
+    (d.flag ? '<div class="spec-flag"><i data-lucide="alert-triangle"></i><span>' + d.flag + '</span></div>' : '') +
+    '<details class="dec-more"><summary>Alternatives rejetées (' + d.rej.length + ')</summary><div class="rej">' +
+    d.rej.map(function (r) { return '<span><b>' + r[0] + '</b> : ' + r[1] + '</span>'; }).join('') +
+    '</div></details></div>';
+}).join('');
+document.getElementById('ribbon').innerHTML = STEPS.map(function (s) {
+  return '<div class="step' + (s.ml ? ' ml' : '') + (s.rt ? ' rt' : '') + '">' +
+    (s.ks ? '<span class="flag flag-ks" title="Arrêt possible : livrer avec le repli"><i data-lucide="octagon"></i></span>' : s.cp ? '<span class="flag flag-cp" title="Point de contrôle"><i data-lucide="flag"></i></span>' : '') +
+    '<span class="id">' + s.id + '</span><span class="t">' + s.t + '</span><span class="d">' + s.d + '</span></div>';
+}).join('');
+
+// Tabs
+document.querySelectorAll('[data-tabs]').forEach(function (bar) {
+  const btns = bar.querySelectorAll('button');
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      btns.forEach(function (x) { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+      bar.parentElement.querySelectorAll('.pane').forEach(function (p) { p.hidden = p.dataset.pane !== b.dataset.tab; });
+    });
+  });
+});
+
+// Active nav link
+const navLinks = [...document.querySelectorAll('.nav a')];
+const obs = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) {
+    if (e.isIntersecting) navLinks.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+document.querySelectorAll('section.sec').forEach(function (s) { obs.observe(s); });
+
+// Theme + Mermaid
+function mermaidVars(dark) {
+  const text = dark ? '#ECEEF2' : '#14171C';
+  const line = dark ? '#9AA2AE' : '#5B6370';
+  const nodeBg = dark ? '#1D2747' : '#E9EEFC';
+  const nodeBorder = dark ? '#6A87F5' : '#2547D0';
+  const labelBg = dark ? '#171A20' : '#FFFFFF';
+  return {
+    fontFamily: 'Geist, system-ui, sans-serif', fontSize: '14px', darkMode: dark, background: labelBg,
+    primaryColor: nodeBg, primaryBorderColor: nodeBorder, primaryTextColor: text,
+    secondaryColor: dark ? '#272C36' : '#F0F2F5', tertiaryColor: dark ? '#1E222A' : '#F6F7F9',
+    lineColor: line, textColor: text, nodeTextColor: text, titleColor: text,
+    clusterBkg: dark ? 'rgba(106,135,245,0.08)' : 'rgba(37,71,208,0.05)', clusterBorder: dark ? '#3A404B' : '#CDD2DA',
+    actorBkg: nodeBg, actorBorder: nodeBorder, actorTextColor: text, actorLineColor: line,
+    signalColor: text, signalTextColor: text, loopTextColor: text, labelBoxBkgColor: labelBg, labelBoxBorderColor: line,
+    activationBkgColor: dark ? '#272C36' : '#F0F2F5', activationBorderColor: line, sequenceNumberColor: dark ? '#0E1014' : '#FFFFFF',
+    noteBkgColor: dark ? '#3A2B14' : '#FDF3E1', noteTextColor: dark ? '#F0D9B0' : '#6B3F06', noteBorderColor: dark ? '#7A5A22' : '#E3C48A',
+    edgeLabelBackground: labelBg, labelBackground: labelBg, labelTextColor: text,
+    attributeBackgroundColorOdd: dark ? '#1E222A' : '#FFFFFF', attributeBackgroundColorEven: dark ? '#171A20' : '#F6F7F9',
+    stateLabelColor: text, compositeBackground: labelBg, altBackground: dark ? '#1E222A' : '#F6F7F9', stateBkg: nodeBg
+  };
+}
+function initMermaid(dark) {
+  // deterministicIds: default ids come from Date.now(), so diagrams rendered in the same millisecond collide and draw into one SVG.
+  mermaid.initialize({ startOnLoad: false, deterministicIds: true, securityLevel: 'loose', theme: 'base', themeVariables: mermaidVars(dark), flowchart: { curve: 'basis', htmlLabels: true }, sequence: { mirrorActors: false, useMaxWidth: true }, er: { useMaxWidth: true } });
+}
+async function renderMermaid(dark) {
+  const nodes = [...document.querySelectorAll('pre.mermaid')];
+  nodes.forEach(function (n) {
+    if (n.dataset.src) n.textContent = n.dataset.src; else n.dataset.src = n.textContent;
+    n.removeAttribute('data-processed');
+  });
+  // External classDef colors are light-mode values; swap for dark so text stays readable.
+  if (dark) nodes.forEach(function (n) {
+    n.textContent = n.textContent
+      .replace('fill:#E9EEFC,stroke:#2547D0', 'fill:#1D2747,stroke:#6A87F5,color:#ECEEF2')
+      .replace('fill:#FFFFFF,stroke:#2547D0', 'fill:#171A20,stroke:#6A87F5,color:#ECEEF2')
+      .replace('fill:#FDF3E1,stroke:#A15C07', 'fill:#3A2B14,stroke:#F0B05E,color:#F0D9B0')
+      .replace('fill:#F0F2F5,stroke:#5B6370', 'fill:#1E222A,stroke:#9AA2AE,color:#ECEEF2')
+      .replace('stroke:#C0352B', 'stroke:#F07A70');
+  });
+  // Mermaid measures label widths at render time; measuring before Geist loads clips every label.
+  try { await Promise.all([document.fonts.load('14px Geist'), document.fonts.load('600 14px Geist')]); await document.fonts.ready; } catch (e) {}
+  document.body.classList.add('rendering');
+  try { await mermaid.run({ nodes: nodes }); } catch (e) { console.error(e); }
+  document.body.classList.remove('rendering');
+}
+const root = document.documentElement;
+function applyTheme(dark) {
+  root.classList.toggle('dark', dark);
+  const btn = document.getElementById('theme-toggle');
+  btn.innerHTML = '<i data-lucide="' + (dark ? 'sun' : 'moon') + '"></i>';
+  if (window.lucide) lucide.createIcons();
+  initMermaid(dark);
+  renderMermaid(dark);
+}
+let stored = null;
+try { stored = localStorage.getItem('campushub-plan-theme'); } catch (e) {}
+applyTheme(stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+document.getElementById('theme-toggle').addEventListener('click', function () {
+  const dark = !root.classList.contains('dark');
+  try { localStorage.setItem('campushub-plan-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  applyTheme(dark);
+});
+
+// Decisions layer
+(function () {
+  const state = { questions: {}, ui: {}, approvals: {}, notes: '' };
+  const indicator = document.getElementById('save-indicator');
+  const mini = document.getElementById('ds-saved-mini');
+  const counter = document.getElementById('ds-counter');
+  const summary = document.getElementById('ds-summary');
+  const detail = document.getElementById('ds-detail');
+  const TOTAL_Q = 5, TOTAL_APP = 4, TOTAL = TOTAL_Q + TOTAL_APP;
+  const LABELS = { modeleUML: 'Modèle UML', replicaSet: 'Replica set', etatClient: 'TanStack Query + Context', donneesSynthetiques: 'ML synthétique' };
+  document.getElementById('ds-toggle').addEventListener('click', function () { detail.classList.toggle('hidden'); });
+  document.getElementById('ds-close').addEventListener('click', function () { detail.classList.add('hidden'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') detail.classList.add('hidden'); });
+  function setStatus(text, kind) { indicator.textContent = text; indicator.className = 'tag ' + kind; mini.textContent = text; }
+  function timeStr(iso) { try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  let online = false;
+  async function load() {
+    try {
+      const r = await fetch('/api/decisions');
+      if (!r.ok) throw 0;
+      const j = await r.json();
+      state.questions = j.questions || {}; state.ui = j.ui || {}; state.approvals = j.approvals || {}; state.notes = j.notes || '';
+      online = true;
+      hydrate();
+      setStatus(j._savedAt ? 'saved · ' + timeStr(j._savedAt) : 'aucun choix', 'tag-mute');
+    } catch (e) { setStatus('offline · run npm run plan', 'tag-warn'); }
+    updateSummary();
+  }
+  function hydrate() {
+    document.querySelectorAll('[data-q]').forEach(function (el) { const q = state.questions[el.dataset.q]; if (q && q.answer === el.value) el.checked = true; });
+    document.querySelectorAll('[data-q-notes]').forEach(function (el) { const q = state.questions[el.dataset.qNotes]; if (q && q.notes) el.value = q.notes; });
+    document.querySelectorAll('[data-approve]').forEach(function (el) { if (state.approvals[el.dataset.approve]) el.checked = true; });
+    const n = document.querySelector('[data-notes]'); if (n) n.value = state.notes;
+  }
+  let timer = null;
+  function queueSave() {
+    if (!online) { updateSummary(); return; }
+    clearTimeout(timer); setStatus('saving…', 'tag-warn'); timer = setTimeout(save, 500);
+  }
+  async function save() {
+    try {
+      const r = await fetch('/api/decisions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) });
+      if (!r.ok) throw 0;
+      const j = await r.json();
+      setStatus('saved · ' + timeStr(j.savedAt), 'tag-success');
+    } catch (e) { setStatus('save failed', 'tag-danger'); }
+  }
+  function handle(t) {
+    if (!t || !t.dataset) return false;
+    if (t.dataset.q !== undefined) { (state.questions[t.dataset.q] = state.questions[t.dataset.q] || {}).answer = t.value; return true; }
+    if (t.dataset.qNotes !== undefined) { (state.questions[t.dataset.qNotes] = state.questions[t.dataset.qNotes] || {}).notes = t.value; return true; }
+    if (t.dataset.approve !== undefined) { state.approvals[t.dataset.approve] = !!t.checked; return true; }
+    if (t.hasAttribute('data-notes')) { state.notes = t.value; return true; }
+    return false;
+  }
+  document.addEventListener('change', function (e) { if (handle(e.target)) { updateSummary(); queueSave(); } });
+  document.addEventListener('input', function (e) { if (e.target.tagName === 'TEXTAREA' && handle(e.target)) { updateSummary(); queueSave(); } });
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function updateSummary() {
+    const qs = Object.entries(state.questions).filter(function (e) { return e[1] && e[1].answer; });
+    const ap = Object.entries(state.approvals).filter(function (e) { return e[1]; });
+    counter.textContent = 'Décisions · ' + (qs.length + ap.length) + ' / ' + TOTAL;
+    summary.innerHTML =
+      '<div><b>Questions · ' + qs.length + ' / ' + TOTAL_Q + '</b>' + (qs.map(function (e) { return '<div>' + e[0] + ' · ' + esc(e[1].answer) + '</div>'; }).join('') || '<div>aucune</div>') + '</div>' +
+      '<div style="margin-top:12px"><b>Validations · ' + ap.length + ' / ' + TOTAL_APP + '</b>' + (ap.map(function (e) { return '<div>' + esc(LABELS[e[0]] || e[0]) + '</div>'; }).join('') || '<div>aucune</div>') + '</div>' +
+      (state.notes ? '<div style="margin-top:12px"><b>Notes</b><div>' + esc(state.notes.slice(0, 240)) + '</div></div>' : '');
+  }
+  document.getElementById('ds-reset').addEventListener('click', function () {
+    if (!confirm('Réinitialiser tous les choix ?')) return;
+    state.questions = {}; state.approvals = {}; state.notes = '';
+    document.querySelectorAll('[data-q], [data-approve]').forEach(function (el) { el.checked = false; });
+    document.querySelectorAll('[data-q-notes], [data-notes]').forEach(function (el) { el.value = ''; });
+    updateSummary(); queueSave();
+  });
+  document.getElementById('ds-copy').addEventListener('click', async function () {
+    const b = this;
+    try { await navigator.clipboard.writeText(JSON.stringify(state, null, 2)); b.textContent = 'Copié'; setTimeout(function () { b.textContent = 'Copier le JSON'; }, 1200); }
+    catch (e) { alert(JSON.stringify(state, null, 2)); }
+  });
+  load();
+})();
+
+if (window.lucide) lucide.createIcons();
+</script>
+</body>
+</html>

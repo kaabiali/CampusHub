@@ -1,0 +1,19 @@
+{
+  "name": "campushub",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "docker compose up -d --wait && concurrently -n api,web -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "services": "docker compose up -d --wait",
+    "db:init": "docker compose exec mongo mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }\"",
+    "test": "npm test -w server",
+    "plan": "node scripts/plan-server.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
