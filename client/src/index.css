@@ -4,82 +4,89 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Palette carried over from the mockup (assets/style.css) onto shadcn's variable names. */
+/* CampusGroups-inspired palette: one bright blue, charcoal surfaces, mint as the highlight. */
 :root {
-  --radius: 0.5rem;
-  --background: #f6f7f9;
-  --foreground: #14171c;
-  --foreground-2: #3d4450;
+  --radius: 0.375rem;
+  --background: #f5f7fa;
+  --foreground: #1f2120;
+  --foreground-2: #3e423f;
   --card: #ffffff;
-  --card-foreground: #14171c;
+  --card-foreground: #1f2120;
   --popover: #ffffff;
-  --popover-foreground: #14171c;
-  --primary: #2547d0;
-  --primary-hover: #1a36a6;
+  --popover-foreground: #1f2120;
+  --primary: #0049db;
+  --primary-hover: #003bb3;
   --primary-foreground: #ffffff;
-  --primary-soft: #e9eefc;
-  --primary-soft-foreground: #1a36a6;
-  --secondary: #f0f2f5;
-  --secondary-foreground: #14171c;
-  --muted: #f0f2f5;
-  --muted-foreground: #5b6370;
-  --accent: #eef0f3;
-  --accent-foreground: #14171c;
+  --primary-soft: #e8effd;
+  --primary-soft-foreground: #0039ad;
+  --secondary: #eff1f3;
+  --secondary-foreground: #1f2120;
+  --muted: #eff1f3;
+  --muted-foreground: #5f6461;
+  --accent: #eceef1;
+  --accent-foreground: #1f2120;
   --destructive: #b42318;
   --destructive-soft: #fceceb;
-  --success: #1f7a4d;
-  --success-soft: #e3f3ea;
+  --success: #1c6b43;
+  --success-soft: #e3f6ec;
   --warning: #9a4a0b;
   --warning-soft: #fdf3e1;
-  --border: #e3e6eb;
-  --input: #cdd2da;
-  --ring: #2547d0;
-  --chart-1: #2547d0;
-  --chart-2: #a9bbf2;
-  --chart-3: #1f7a4d;
+  --border: #e4e6e8;
+  --input: #d5d9de;
+  --ring: #0049db;
+  --chart-1: #0049db;
+  --chart-2: #9fb9f2;
+  --chart-3: #1c6b43;
   --chart-4: #c27a1a;
-  --chart-5: #7a3b2e;
-  --shadow-color: 220 20% 10%;
+  --chart-5: #7a4fd1;
+  --shadow-color: 220 25% 10%;
+  /* Theme-independent brand surfaces: these stay the same in light and dark. */
+  --brand: #0049db;
+  --brand-hover: #003bb3;
+  --ink: #2a2b2a;
+  --ink-2: #343534;
+  --mint: #5cf2c1;
 }
 
 .dark {
-  --background: #0e1014;
-  --foreground: #eceef2;
-  --foreground-2: #c4cad4;
-  --card: #171a20;
-  --card-foreground: #eceef2;
-  --popover: #1b1f26;
-  --popover-foreground: #eceef2;
+  --background: #1d1e1d;
+  --foreground: #eef0ee;
+  --foreground-2: #c9cdca;
+  --card: #262726;
+  --card-foreground: #eef0ee;
+  --popover: #2c2d2c;
+  --popover-foreground: #eef0ee;
   /* Lighter accent with dark text: white on a mid blue can't reach 4.5:1 while the same blue stays legible as text. */
-  --primary: #6a87f5;
-  --primary-hover: #8199f7;
-  --primary-foreground: #0b1020;
-  --primary-soft: #1d2747;
-  --primary-soft-foreground: #afc0ff;
-  --secondary: #222731;
-  --secondary-foreground: #eceef2;
-  --muted: #1e222a;
-  --muted-foreground: #9aa2ae;
-  --accent: #222731;
-  --accent-foreground: #eceef2;
+  --primary: #6f9bff;
+  --primary-hover: #8aaeff;
+  --primary-foreground: #0a1430;
+  --primary-soft: #1b2a4d;
+  --primary-soft-foreground: #b6caff;
+  --secondary: #303230;
+  --secondary-foreground: #eef0ee;
+  --muted: #2c2e2c;
+  --muted-foreground: #a3a8a5;
+  --accent: #313331;
+  --accent-foreground: #eef0ee;
   --destructive: #e5584b;
   --destructive-soft: #3a1d1b;
-  --success: #6fcf9c;
-  --success-soft: #14301f;
+  --success: #5cf2c1;
+  --success-soft: #133328;
   --warning: #f0a35e;
   --warning-soft: #3a2b14;
-  --border: #2a2f38;
-  --input: #3a404b;
-  --ring: #6a87f5;
-  --chart-1: #6a87f5;
-  --chart-2: #33427a;
-  --chart-3: #6fcf9c;
+  --border: #383a38;
+  --input: #484a48;
+  --ring: #6f9bff;
+  --chart-1: #6f9bff;
+  --chart-2: #2f4478;
+  --chart-3: #5cf2c1;
   --chart-4: #f0a35e;
-  --chart-5: #e08a74;
-  --shadow-color: 220 40% 2%;
+  --chart-5: #b294f0;
+  --shadow-color: 120 5% 3%;
 }
 
 @theme inline {
-  --font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -117,11 +124,17 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-mint: var(--mint);
   /* Shadows tinted with the background hue instead of flat black. */
   --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.05);
   --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 2px 6px hsl(var(--shadow-color) / 0.04);
   --shadow-md: 0 2px 4px hsl(var(--shadow-color) / 0.06), 0 8px 20px hsl(var(--shadow-color) / 0.07);
   --shadow-lg: 0 4px 10px hsl(var(--shadow-color) / 0.08), 0 20px 48px hsl(var(--shadow-color) / 0.14);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --animate-fade-up: fade-up 200ms ease-out both;
 }
 
@@ -140,11 +153,10 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: 'ss01', 'cv11';
   }
   h1, h2, h3 {
     text-wrap: balance;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
   }
   p {
     text-wrap: pretty;
@@ -152,6 +164,28 @@
   ::selection {
     background: var(--primary-soft);
     color: var(--primary-soft-foreground);
+  }
+}
+
+@utility nav-link {
+  position: relative;
+  padding-block: 0.5rem;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground);
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 2px;
+    height: 2px;
+    background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms var(--ease-out-quint);
+  }
+  &:hover::after {
+    transform: scaleX(1);
   }
 }
 
