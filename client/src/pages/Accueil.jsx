@@ -22,7 +22,7 @@ function Stat({ to, label, value, hint }) {
   return (
     <Link to={to} className="group flex flex-col gap-1.5 rounded-lg border bg-card px-5 py-4 shadow-xs transition-[border-color,box-shadow] duration-150 hover:border-input hover:shadow-sm">
       <span className="text-[13px] text-muted-foreground">{label}</span>
-      {value === undefined ? <span className="h-8 w-10 rounded bg-muted animate-pulse" /> : <span className="font-mono text-[28px] leading-none tabular">{value}</span>}
+      {value === undefined ? <span className="h-8 w-10 rounded bg-muted animate-pulse" /> : <span className="text-[28px] leading-none font-semibold tracking-tight">{value}</span>}
       <span className="truncate text-[13px] text-foreground-2 first-letter:uppercase">{hint || ' '}</span>
     </Link>
   );

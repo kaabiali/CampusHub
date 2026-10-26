@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, CarFront, House, MessageCircle, UserRound, UsersRound } from 'lucide-react';
+import { BookOpen, CalendarDays, CarFront, ChartColumn, House, MessageCircle, ShieldAlert, Tags, UserRound, UserRoundCog, UsersRound } from 'lucide-react';
 
 export const NAV = [
   { to: '/accueil', label: 'Accueil', icon: House, keywords: 'tableau de bord dashboard' },
@@ -9,6 +9,11 @@ export const NAV = [
   { to: '/messages', label: 'Messagerie', icon: MessageCircle, keywords: 'messages conversations discuter' },
 ];
 
-export const ADMIN_NAV = [];
+export const ADMIN_NAV = [
+  { to: '/admin', label: 'Tableau de bord', icon: ChartColumn, keywords: 'statistiques admin analytique' },
+  { to: '/admin/moderation', label: 'Modération', icon: ShieldAlert, keywords: 'signalements admin' },
+  { to: '/admin/utilisateurs', label: 'Utilisateurs', icon: UserRoundCog, keywords: 'comptes bloquer admin' },
+  { to: '/admin/referentiels', label: 'Catégories et clubs', icon: Tags, keywords: 'catégories clubs responsables admin' },
+];
 
 export const ACCOUNT_NAV = [{ to: '/profil', label: 'Mon profil', icon: UserRound, keywords: 'compte matières photo mot de passe' }];

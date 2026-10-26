@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Check, CheckCheck, CircleAlert, SendHorizontal, Tag } from 'lucide-react';
+import { ArrowLeft, Check, CheckCheck, CircleAlert, Flag, SendHorizontal, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/UserAvatar';
+import { ReportDialog } from '@/components/ReportDialog';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { get, post } from '@/lib/api';
 import { dayLong, fullName, isoDay, time } from '@/lib/format';
@@ -109,6 +110,7 @@ export function Thread({ otherId, contexte }) {
   const scrollRef = useRef(null);
   const stickToBottom = useRef(true);
   const { send, retry } = useSendMessage(otherId, contexte);
+  const [reporting, setReporting] = useState(null);
 
   const { data: head, error } = useQuery({
     queryKey: ['thread', otherId],
@@ -234,8 +236,13 @@ export function Thread({ otherId, contexte }) {
                     {m.contenu}
                   </p>
                   {lastOfGroup && (
-                    <span className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span className="group/meta mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                       {time(m.dateEnvoi)}
+                      {!mine && !m.statut && (
+                        <button type="button" onClick={() => setReporting(m._id)} className="inline-flex items-center gap-1 opacity-0 transition-opacity group-hover/meta:opacity-100 hover:text-destructive focus-visible:opacity-100" aria-label="Signaler ce message">
+                          <Flag className="size-3" /> Signaler
+                        </button>
+                      )}
                       {mine && (
                         <>
                           <span aria-hidden="true">·</span>
@@ -257,6 +264,7 @@ export function Thread({ otherId, contexte }) {
           </div>
         )}
       </div>
+      <ReportDialog open={Boolean(reporting)} onOpenChange={(o) => !o && setReporting(null)} typeContenu="MESSAGE" contenuId={reporting} />
       <Composer
         onSend={(text) => {
           stickToBottom.current = true;

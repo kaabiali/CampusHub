@@ -17,6 +17,7 @@ import { clubsRouter } from './routes/clubs.js';
 import { eventsRouter } from './routes/events.js';
 import { conversationsRouter, notificationsRouter } from './routes/messages.js';
 import { homeRouter } from './routes/home.js';
+import { adminRouter } from './routes/admin.js';
 
 export function createApp() {
   const app = express();
@@ -48,6 +49,7 @@ export function createApp() {
   app.use('/api/evenements', eventsRouter);
   app.use('/api/conversations', conversationsRouter);
   app.use('/api/notifications', notificationsRouter);
+  app.use('/api/admin', adminRouter);
   app.use('/api', homeRouter);
 
   app.use('/api', notFoundHandler);
