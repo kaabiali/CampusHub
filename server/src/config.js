@@ -1,3 +1,7 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
 const env = process.env;
 
 const isProd = env.NODE_ENV === 'production';
@@ -18,5 +22,5 @@ export const config = {
   smtpPort: Number(env.SMTP_PORT) || 1025,
   mailFrom: env.MAIL_FROM || 'CampusHub <no-reply@campus.tn>',
   emailDomain: (env.EMAIL_DOMAIN || 'campus.tn').toLowerCase(),
-  uploadDir: new URL('../uploads/', import.meta.url),
+  uploadDir: env.NODE_ENV === 'test' ? pathToFileURL(join(tmpdir(), 'campushub-test-uploads/')) : new URL('../uploads/', import.meta.url),
 };

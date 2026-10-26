@@ -24,6 +24,12 @@ export function errorHandler(err, req, res, _next) {
   if (err instanceof AppError) {
     return res.status(err.status).json({ error: { code: err.code, message: err.message, ...(err.champs && { champs: err.champs }) } });
   }
+  if (err?.name === 'MulterError') {
+    const tooBig = err.code === 'LIMIT_FILE_SIZE';
+    return res.status(tooBig ? 413 : 400).json({
+      error: { code: tooBig ? 'FICHIER_TROP_GROS' : 'FICHIERS_INVALIDES', message: tooBig ? 'Fichier trop volumineux.' : 'Nombre ou champ de fichiers invalide.' },
+    });
+  }
   if (err?.code === 11000) {
     return res.status(409).json({ error: { code: 'DOUBLON', message: 'Cet élément existe déjà.' } });
   }
@@ -32,6 +38,10 @@ export function errorHandler(err, req, res, _next) {
   }
   if (err?.type === 'entity.parse.failed') {
     return res.status(400).json({ error: { code: 'JSON_INVALIDE', message: 'Corps de requête JSON invalide.' } });
+  }
+  const status = err?.status ?? err?.statusCode;
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ error: { code: status === 404 ? 'INTROUVABLE' : 'REQUETE_INVALIDE', message: status === 404 ? 'Ressource introuvable.' : 'Requête invalide.' } });
   }
   (req.log || logger).error({ err }, 'unhandled_error');
   res.status(500).json({ error: { code: 'ERREUR_SERVEUR', message: 'Une erreur inattendue est survenue. Réessayez dans un instant.' } });
