@@ -8,9 +8,12 @@ import { ADMIN_NAV, NAV } from '@/lib/nav';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 import { CommandPalette } from './CommandPalette';
+import { NotificationBell } from './NotificationBell';
+import { SocketProvider } from '@/providers/SocketProvider';
+import { useUnreadMessages } from '@/hooks/useConversations';
 import { UserMenu } from './UserMenu';
 
-function NavItem({ item, onNavigate }) {
+function NavItem({ item, badge, onNavigate }) {
   return (
     <NavLink
       to={item.to}
@@ -24,20 +27,26 @@ function NavItem({ item, onNavigate }) {
     >
       <item.icon className="size-[18px]" strokeWidth={1.75} />
       <span className="flex-1">{item.label}</span>
-      {item.badge > 0 && <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular">{item.badge > 99 ? '99+' : item.badge}</span>}
+      {badge > 0 && (
+        <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular" aria-label={`${badge} non lus`}>
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </NavLink>
   );
 }
 
 function SidebarContent({ onNavigate }) {
   const { user } = useAuth();
+  const unread = useUnreadMessages();
+  const badges = { '/messages': unread };
   const adminItems = user?.role === 'ADMIN' ? ADMIN_NAV : [];
   return (
     <div className="flex h-full flex-col gap-6 px-3 py-5">
       <Brand to="/accueil" className="px-2" />
       <nav aria-label="Navigation principale" className="flex flex-1 flex-col gap-0.5">
         {NAV.map((item) => (
-          <NavItem key={item.to} item={item} onNavigate={onNavigate} />
+          <NavItem key={item.to} item={item} badge={badges[item.to]} onNavigate={onNavigate} />
         ))}
         {adminItems.length > 0 && (
           <>
@@ -56,6 +65,14 @@ function SidebarContent({ onNavigate }) {
 }
 
 export function AppShell() {
+  return (
+    <SocketProvider>
+      <Shell />
+    </SocketProvider>
+  );
+}
+
+function Shell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const { pathname } = useLocation();
@@ -91,8 +108,11 @@ export function AppShell() {
             <span className="flex-1 truncate text-left">Rechercher, aller à…</span>
             <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[11px] sm:inline">Ctrl K</kbd>
           </button>
+          <div className="ml-auto">
+            <NotificationBell />
+          </div>
         </header>
-        <main id="contenu" key={pathname} className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pt-6 pb-16 animate-fade-up sm:px-6 lg:px-10 lg:pt-8">
+        <main id="contenu" key={pathname.split('/')[1]} className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 pt-6 pb-16 animate-fade-up sm:px-6 lg:px-10 lg:pt-8">
           <Outlet />
         </main>
       </div>

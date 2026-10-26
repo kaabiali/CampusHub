@@ -6,6 +6,7 @@ import { validate, isStrongPassword, PASSWORD_RULE_MSG } from '../lib/validate.j
 import { badRequest, notFound } from '../lib/errors.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { avatarUpload, publicUrl, removeUpload } from '../lib/upload.js';
+import { disconnectUser } from '../lib/realtime.js';
 
 export const usersRouter = Router();
 
@@ -56,6 +57,7 @@ usersRouter.patch(
     req.user.motDePasseHache = await hashPassword(req.body.nouveau);
     req.user.jetonVersion += 1;
     await req.user.save();
+    disconnectUser(req.user._id);
     setAuthCookie(res, req.user);
     res.json({ ok: true });
   },

@@ -20,6 +20,7 @@ import Groupes from '@/pages/groupes/Groupes';
 import GroupeDetail from '@/pages/groupes/GroupeDetail';
 import Evenements from '@/pages/evenements/Evenements';
 import EvenementDetail from '@/pages/evenements/EvenementDetail';
+import Messagerie from '@/pages/messages/Messagerie';
 import NotFound from '@/pages/NotFound';
 import RouteError from '@/pages/RouteError';
 
@@ -71,6 +72,8 @@ export const router = createBrowserRouter([
           { path: 'groupes/:id', element: <GroupeDetail /> },
           { path: 'evenements', element: <Evenements /> },
           { path: 'evenements/:id', element: <EvenementDetail /> },
+          { path: 'messages', element: <Messagerie /> },
+          { path: 'messages/:uid', element: <Messagerie /> },
         ],
       },
       { path: '*', element: <NotFound /> },

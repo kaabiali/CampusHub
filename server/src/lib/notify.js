@@ -9,10 +9,30 @@ export const onNotification = (fn) => {
   return () => listeners.delete(fn);
 };
 
+const publish = (notification) => {
+  for (const fn of listeners) fn(notification);
+};
+
+// One unread notification per conversation: a burst of messages refreshes it instead of stacking.
+export async function notifyMessage(utilisateur, { contenu, lien }) {
+  try {
+    const notification = await Notification.findOneAndUpdate(
+      { utilisateur, type: 'MESSAGE', lien, lue: false },
+      { $set: { contenu, dateCreation: new Date() } },
+      { upsert: true, returnDocument: 'after', timestamps: false },
+    );
+    publish(notification);
+    return notification;
+  } catch (err) {
+    logger.error({ err: err.message }, 'notify_failed');
+    return null;
+  }
+}
+
 export async function notify(utilisateur, { type, contenu, lien = null, cleDedup }) {
   try {
     const notification = await Notification.create({ utilisateur, type, contenu, lien, cleDedup });
-    for (const fn of listeners) fn(notification);
+    publish(notification);
     return notification;
   } catch (err) {
     if (err.code === 11000) return null;

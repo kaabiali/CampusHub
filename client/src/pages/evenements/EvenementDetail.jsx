@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ban, Bell, Clock, Flag, MapPin, Pencil, TriangleAlert, Users } from 'lucide-react';
+import { ArrowLeft, Ban, Bell, Clock, Flag, MapPin, MessageCircle, Pencil, TriangleAlert, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -117,7 +117,14 @@ export default function EvenementDetail() {
             </div>
           </dl>
           {event.description && <p className="max-w-[65ch] leading-relaxed whitespace-pre-line text-foreground-2">{event.description}</p>}
-          <p className="text-sm text-muted-foreground">Publié par {fullName(event.organisateur)}</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+            Publié par {fullName(event.organisateur)}
+            {!event.peutGerer && (
+              <Link to={`/messages/${event.organisateur._id}?sujet=EVENEMENT:${event._id}`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+                <MessageCircle className="size-3.5" /> Poser une question
+              </Link>
+            )}
+          </p>
         </article>
 
         <aside className="flex flex-col gap-3 rounded-lg border bg-card p-5 shadow-xs lg:sticky lg:top-20">

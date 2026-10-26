@@ -15,6 +15,7 @@ import { reservationsRouter, ridesRouter } from './routes/rides.js';
 import { groupsRouter } from './routes/groups.js';
 import { clubsRouter } from './routes/clubs.js';
 import { eventsRouter } from './routes/events.js';
+import { conversationsRouter, notificationsRouter } from './routes/messages.js';
 
 export function createApp() {
   const app = express();
@@ -44,6 +45,8 @@ export function createApp() {
   app.use('/api/groupes', groupsRouter);
   app.use('/api/clubs', clubsRouter);
   app.use('/api/evenements', eventsRouter);
+  app.use('/api/conversations', conversationsRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   app.use('/api', notFoundHandler);
   app.use(errorHandler);

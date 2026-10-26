@@ -18,5 +18,9 @@
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "concurrently": "^10.0.6"
+  },
+  "allowScripts": {
+    "@scarf/scarf": false,
+    "mongodb-memory-server": false
   }
 }

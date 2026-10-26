@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ban, Flag, MapPin, Pencil, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Ban, Flag, MapPin, MessageCircle, Pencil, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -205,6 +205,13 @@ export default function TrajetDetail() {
                 <RatingBadge user={ride.conducteur} />
               </p>
             </div>
+            {!isDriver && (
+              <Button asChild variant="outline" size="icon" aria-label={`Écrire à ${ride.conducteur.prenom}`}>
+                <Link to={`/messages/${ride.conducteur._id}?sujet=TRAJET:${ride._id}`}>
+                  <MessageCircle />
+                </Link>
+              </Button>
+            )}
           </div>
 
           {isDriver ? (

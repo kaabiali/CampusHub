@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CircleCheck, Eye, Flag, Pencil, RotateCcw, Sparkles, Star, Trash2, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleCheck, Eye, Flag, MessageCircle, Pencil, RotateCcw, Sparkles, Star, Trash2, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -183,7 +183,15 @@ export default function LivreDetail() {
                 <Trash2 /> Supprimer
               </Button>
             </div>
-          ) : null}
+          ) : (
+            book.statut === 'DISPONIBLE' && (
+              <Button asChild size="lg" className="self-start">
+                <Link to={`/messages/${book.vendeur._id}?sujet=ANNONCE:${book._id}`}>
+                  <MessageCircle /> Contacter le vendeur
+                </Link>
+              </Button>
+            )
+          )}
 
           <dl className="rounded-lg border bg-card px-4 py-1.5 shadow-xs">
             <Fact label="Matière" value={book.matiere} />
