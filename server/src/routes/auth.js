@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { config } from '../config.js';
 import { User } from '../models/User.js';
 import { validate, isStrongPassword, PASSWORD_RULE_MSG } from '../lib/validate.js';
-import { clearAuthCookie, requireAuth, setAuthCookie } from '../lib/auth.js';
+import { clearAuthCookie, readToken, requireAuth, setAuthCookie, userFromToken } from '../lib/auth.js';
 import { badRequest, AppError } from '../lib/errors.js';
 import { createEmailToken, hashToken } from '../lib/tokens.js';
 import { sendMail } from '../lib/mailer.js';
@@ -15,14 +15,22 @@ export const authRouter = Router();
 const VERIFY_TTL = 24 * 3600 * 1000;
 const RESET_TTL = 3600 * 1000;
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  skip: () => config.isTest,
-  handler: (req, res) => res.status(429).json({ error: { code: 'TROP_DE_TENTATIVES', message: 'Trop de tentatives. Réessayez dans 15 minutes.' } }),
-});
+const limiter = (options) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    skip: () => config.isTest,
+    handler: (req, res) => res.status(429).json({ error: { code: 'TROP_DE_TENTATIVES', message: 'Trop de tentatives. Réessayez dans 15 minutes.' } }),
+    ...options,
+  });
+
+const emailKey = (req) => String(req.body?.email || req.user?.email || '').trim().toLowerCase();
+
+// Students share the campus NAT address, so limits are keyed per account, with a loose per-IP backstop.
+const ipBackstop = limiter({ limit: 100 });
+const loginLimiter = limiter({ limit: 10, skipSuccessfulRequests: true, keyGenerator: (req) => `${ipKeyGenerator(req.ip)}:${emailKey(req)}` });
+const mailLimiter = limiter({ limit: 5, keyGenerator: (req) => `mail:${emailKey(req)}` });
 
 const campusEmail = () =>
   body('email')
@@ -50,7 +58,8 @@ async function sendVerification(user) {
 
 authRouter.post(
   '/inscription',
-  authLimiter,
+  ipBackstop,
+  mailLimiter,
   validate(
     body('prenom').trim().isLength({ min: 1, max: 50 }).withMessage('Indiquez votre prénom.'),
     body('nom').trim().isLength({ min: 1, max: 50 }).withMessage('Indiquez votre nom.'),
@@ -73,7 +82,8 @@ authRouter.post(
 
 authRouter.post(
   '/connexion',
-  authLimiter,
+  ipBackstop,
+  loginLimiter,
   validate(body('email').trim().toLowerCase().isEmail().withMessage('Adresse e-mail invalide.'), body('motDePasse').isString().notEmpty().withMessage('Indiquez votre mot de passe.')),
   async (req, res) => {
     const user = await User.findOne({ email: req.body.email, estSupprime: false });
@@ -90,8 +100,11 @@ authRouter.post('/deconnexion', (req, res) => {
   res.status(204).end();
 });
 
-authRouter.get('/moi', requireAuth({ allowUnverified: true }), (req, res) => {
-  res.json({ utilisateur: req.user });
+// "Who am I" is a question, not a protected resource: guests get null instead of a 401
+// so every anonymous page load doesn't log an error in the browser console.
+authRouter.get('/moi', async (req, res) => {
+  const user = await userFromToken(readToken(req));
+  res.json({ utilisateur: user && !user.estBloque ? user : null });
 });
 
 authRouter.post('/verifier', validate(body('jeton').isString().notEmpty()), async (req, res) => {
@@ -106,12 +119,12 @@ authRouter.post('/verifier', validate(body('jeton').isString().notEmpty()), asyn
   res.json({ utilisateur: user });
 });
 
-authRouter.post('/renvoyer-verification', authLimiter, requireAuth({ allowUnverified: true }), async (req, res) => {
+authRouter.post('/renvoyer-verification', ipBackstop, requireAuth({ allowUnverified: true }), mailLimiter, async (req, res) => {
   if (req.user.emailVerifie) return res.json({ mailEnvoye: false, dejaVerifie: true });
   res.json({ mailEnvoye: await sendVerification(req.user) });
 });
 
-authRouter.post('/mot-de-passe-oublie', authLimiter, validate(body('email').trim().toLowerCase().isEmail().withMessage('Adresse e-mail invalide.')), async (req, res) => {
+authRouter.post('/mot-de-passe-oublie', ipBackstop, mailLimiter, validate(body('email').trim().toLowerCase().isEmail().withMessage('Adresse e-mail invalide.')), async (req, res) => {
   const user = await User.findOne({ email: req.body.email, estSupprime: false, estBloque: false });
   if (user) {
     const { token, stored } = createEmailToken(RESET_TTL);
@@ -132,7 +145,7 @@ authRouter.post('/mot-de-passe-oublie', authLimiter, validate(body('email').trim
 
 authRouter.post(
   '/reinitialiser',
-  authLimiter,
+  ipBackstop,
   validate(body('jeton').isString().notEmpty(), body('motDePasse').custom(isStrongPassword).withMessage(PASSWORD_RULE_MSG)),
   async (req, res) => {
     const user = await User.findOne({ 'jetonReset.hash': hashToken(req.body.jeton) });

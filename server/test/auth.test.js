@@ -91,11 +91,15 @@ describe('connexion', () => {
     const login = await request(app).post('/api/auth/connexion').send({ email: user.email, motDePasse: 'motdepasse1' });
     expect(login.status).toBe(403);
     expect(login.body.error.code).toBe('COMPTE_BLOQUE');
-    expect((await as(user).get('/api/auth/moi')).status).toBe(403);
+    expect((await as(user).get('/api/auth/moi')).body.utilisateur).toBeNull();
+    expect((await as(user).patch('/api/utilisateurs/moi').send({})).body.error.code).toBe('COMPTE_BLOQUE');
   });
 
-  it('refuse les requêtes sans jeton', async () => {
-    expect((await request(app).get('/api/auth/moi')).status).toBe(401);
+  it('répond null à /moi pour un visiteur et 401 sur une route protégée', async () => {
+    const moi = await request(app).get('/api/auth/moi');
+    expect(moi.status).toBe(200);
+    expect(moi.body.utilisateur).toBeNull();
+    expect((await request(app).patch('/api/utilisateurs/moi').send({})).status).toBe(401);
   });
 });
 
@@ -114,7 +118,7 @@ describe('mot de passe', () => {
 
     const reset = await request(app).post('/api/auth/reinitialiser').send({ jeton, motDePasse: 'nouveau123' });
     expect(reset.status).toBe(200);
-    expect((await oldSession.get('/api/auth/moi')).status).toBe(401);
+    expect((await oldSession.get('/api/auth/moi')).body.utilisateur).toBeNull();
 
     const login = await request(app).post('/api/auth/connexion').send({ email: user.email, motDePasse: 'nouveau123' });
     expect(login.status).toBe(200);
@@ -128,7 +132,7 @@ describe('mot de passe', () => {
 
     const ok = await as(user).patch('/api/utilisateurs/moi/mot-de-passe').send({ actuel: 'motdepasse1', nouveau: 'nouveau123' });
     expect(ok.status).toBe(200);
-    expect((await as(user).get('/api/auth/moi')).status).toBe(401);
+    expect((await as(user).get('/api/auth/moi')).body.utilisateur).toBeNull();
   });
 });
 

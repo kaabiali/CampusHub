@@ -18,7 +18,7 @@ export function setAuthCookie(res, user) {
 
 export const clearAuthCookie = (res) => res.clearCookie(COOKIE_NAME, { path: '/' });
 
-function readToken(req) {
+export function readToken(req) {
   const header = req.get('authorization');
   if (header?.startsWith('Bearer ')) return header.slice(7);
   return req.cookies?.[COOKIE_NAME];
