@@ -7,7 +7,7 @@
 /* CampusGroups-inspired palette: one bright blue, charcoal surfaces, mint as the highlight. */
 :root {
   --radius: 0.375rem;
-  --background: #f5f7fa;
+  --background: #fafbfd;
   --foreground: #1f2120;
   --foreground-2: #3e423f;
   --card: #ffffff;
@@ -23,7 +23,8 @@
   --secondary-foreground: #1f2120;
   --muted: #eff1f3;
   --muted-foreground: #5f6461;
-  --accent: #eceef1;
+  /* The hover surface everywhere: the primary hue at low saturation, so a hover reads as the same family as the active nav row. */
+  --accent: #edf2fd;
   --accent-foreground: #1f2120;
   --destructive: #b42318;
   --destructive-soft: #fceceb;
@@ -40,6 +41,11 @@
   --chart-4: #c27a1a;
   --chart-5: #7a4fd1;
   --shadow-color: 220 25% 10%;
+  /* Sidebar sits one step off the page with a hairline border: same tonal family, separated by a rule instead of a cliff. */
+  --sidebar: #f5f7fa;
+  --sidebar-foreground: #1f2120;
+  --sidebar-muted: #555a57;
+  --sidebar-border: #e4e6e8;
   /* Theme-independent brand surfaces: these stay the same in light and dark. */
   --brand: #0049db;
   --brand-hover: #003bb3;
@@ -49,12 +55,12 @@
 }
 
 .dark {
-  --background: #1d1e1d;
+  --background: #111211;
   --foreground: #eef0ee;
   --foreground-2: #c9cdca;
-  --card: #262726;
+  --card: #1b1c1b;
   --card-foreground: #eef0ee;
-  --popover: #2c2d2c;
+  --popover: #232423;
   --popover-foreground: #eef0ee;
   /* Lighter accent with dark text: white on a mid blue can't reach 4.5:1 while the same blue stays legible as text. */
   --primary: #6f9bff;
@@ -62,11 +68,11 @@
   --primary-foreground: #0a1430;
   --primary-soft: #1b2a4d;
   --primary-soft-foreground: #b6caff;
-  --secondary: #303230;
+  --secondary: #262826;
   --secondary-foreground: #eef0ee;
-  --muted: #2c2e2c;
+  --muted: #222422;
   --muted-foreground: #a3a8a5;
-  --accent: #313331;
+  --accent: #1a2336;
   --accent-foreground: #eef0ee;
   --destructive: #e5584b;
   --destructive-soft: #3a1d1b;
@@ -74,8 +80,8 @@
   --success-soft: #133328;
   --warning: #f0a35e;
   --warning-soft: #3a2b14;
-  --border: #383a38;
-  --input: #484a48;
+  --border: #2a2c2a;
+  --input: #3a3c3a;
   --ring: #6f9bff;
   --chart-1: #6f9bff;
   --chart-2: #2f4478;
@@ -83,6 +89,11 @@
   --chart-4: #f0a35e;
   --chart-5: #b294f0;
   --shadow-color: 120 5% 3%;
+  /* The sidebar recedes between the ground and the cards, so content is what rises. */
+  --sidebar: #151615;
+  --sidebar-foreground: #eef0ee;
+  --sidebar-muted: #a3a8a5;
+  --sidebar-border: #2a2c2a;
 }
 
 @theme inline {
@@ -129,11 +140,18 @@
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-mint: var(--mint);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
   /* Shadows tinted with the background hue instead of flat black. */
   --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.05);
   --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.05), 0 2px 6px hsl(var(--shadow-color) / 0.04);
   --shadow-md: 0 2px 4px hsl(var(--shadow-color) / 0.06), 0 8px 20px hsl(var(--shadow-color) / 0.07);
   --shadow-lg: 0 4px 10px hsl(var(--shadow-color) / 0.08), 0 20px 48px hsl(var(--shadow-color) / 0.14);
+  /* Card pair: near-flat at rest, a soft long lift on hover. */
+  --shadow-card: 0 1px 3px hsl(var(--shadow-color) / 0.04), 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --shadow-card-hover: 0 10px 30px hsl(var(--shadow-color) / 0.08), 0 4px 12px hsl(var(--shadow-color) / 0.04);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --animate-fade-up: fade-up 200ms ease-out both;
 }

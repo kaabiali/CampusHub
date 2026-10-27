@@ -1,73 +1,23 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router';
-import { Menu, Search } from 'lucide-react';
-import { Brand } from '@/components/Brand';
+import { Link, Outlet, useLocation } from 'react-router';
+import { Menu, PanelLeft, Search } from 'lucide-react';
+import { BrandMark } from '@/components/Brand';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
-import { ADMIN_NAV, NAV } from '@/lib/nav';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/providers/AuthProvider';
+import { SidebarProvider, useSidebar } from '@/providers/SidebarProvider';
+import { SocketProvider } from '@/providers/SocketProvider';
 import { CommandPalette } from './CommandPalette';
 import { NotificationBell } from './NotificationBell';
-import { SocketProvider } from '@/providers/SocketProvider';
-import { useUnreadMessages } from '@/hooks/useConversations';
-import { UserMenu } from './UserMenu';
-
-function NavItem({ item, badge, onNavigate }) {
-  return (
-    <NavLink
-      to={item.to}
-      onClick={onNavigate}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center gap-3 rounded-md px-2.5 py-2 text-sm font-medium text-foreground-2 transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring',
-          isActive && 'bg-primary-soft font-semibold text-primary-soft-foreground hover:bg-primary-soft hover:text-primary-soft-foreground',
-        )
-      }
-    >
-      <item.icon className="size-[18px]" strokeWidth={1.75} />
-      <span className="flex-1">{item.label}</span>
-      {badge > 0 && (
-        <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground tabular" aria-label={`${badge} non lus`}>
-          {badge > 99 ? '99+' : badge}
-        </span>
-      )}
-    </NavLink>
-  );
-}
-
-function SidebarContent({ onNavigate }) {
-  const { user } = useAuth();
-  const unread = useUnreadMessages();
-  const badges = { '/messages': unread };
-  const adminItems = user?.role === 'ADMIN' ? ADMIN_NAV : [];
-  return (
-    <div className="flex h-full flex-col gap-6 px-3 py-5">
-      <Brand to="/accueil" className="px-2" />
-      <nav aria-label="Navigation principale" className="flex flex-1 flex-col gap-0.5">
-        {NAV.map((item) => (
-          <NavItem key={item.to} item={item} badge={badges[item.to]} onNavigate={onNavigate} />
-        ))}
-        {adminItems.length > 0 && (
-          <>
-            <p className="mt-5 mb-1 px-2.5 text-xs font-medium text-muted-foreground">Administration</p>
-            {adminItems.map((item) => (
-              <NavItem key={item.to} item={item} onNavigate={onNavigate} />
-            ))}
-          </>
-        )}
-      </nav>
-      <div className="border-t pt-3">
-        <UserMenu />
-      </div>
-    </div>
-  );
-}
+import { Sidebar } from './Sidebar';
+import { ThemeToggle } from './ThemeToggle';
 
 export function AppShell() {
   return (
     <SocketProvider>
-      <Shell />
+      <SidebarProvider>
+        <Shell />
+      </SidebarProvider>
     </SocketProvider>
   );
 }
@@ -76,39 +26,66 @@ function Shell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const { pathname } = useLocation();
+  const { collapsed, toggle } = useSidebar();
+  const panelLabel = collapsed ? 'Déplier la barre latérale' : 'Réduire la barre latérale';
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+    <div className="flex min-h-dvh bg-background">
       <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:shadow-md">
         Aller au contenu
       </a>
-      <aside className="sticky top-0 hidden h-dvh border-r bg-card lg:block">
-        <SidebarContent />
-      </aside>
+      <Sidebar />
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0">
+        <SheetContent side="left" className="w-[280px] gap-0 border-sidebar-border bg-sidebar p-0">
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <SheetDescription className="sr-only">Navigation principale</SheetDescription>
-          <SidebarContent onNavigate={() => setMobileOpen(false)} />
+          <Sidebar inSheet onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-md sm:px-6 lg:px-10">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Ouvrir le menu">
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* The 2px tinted rule says which side of the app you are on: blue for students, red for administration. */}
+        <header
+          className={cn(
+            'sticky top-0 z-30 flex h-14 items-center gap-2 border-b-2 bg-background/60 px-3 backdrop-blur-xl sm:px-4',
+            pathname.startsWith('/admin') ? 'border-b-destructive/35' : 'border-b-primary/25',
+          )}
+        >
+          <Button variant="ghost" size="icon" className="size-9 lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Ouvrir le menu">
             <Menu />
           </Button>
+          <Link to="/accueil" aria-label="CampusHub, accueil" className="rounded-md lg:hidden">
+            <BrandMark className="size-7" />
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden size-9 text-muted-foreground hover:text-foreground lg:inline-flex"
+            onClick={toggle}
+            aria-label={panelLabel}
+            title={panelLabel}
+            aria-expanded={!collapsed}
+            aria-controls="barre-laterale"
+          >
+            <PanelLeft className="size-4" />
+          </Button>
+          {/* A filled pill that reads as a field you can type into, not a button that happens to say "search". */}
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex h-9 w-full max-w-sm items-center gap-2 rounded-md border border-input bg-card px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-ring/50 focus-visible:outline-2 focus-visible:outline-ring"
+            className="ml-1 hidden h-10 w-full max-w-sm items-center gap-2.5 rounded-full border border-border/70 bg-muted/40 px-4 text-sm text-muted-foreground transition-colors duration-150 outline-none hover:border-primary hover:bg-muted/70 focus-visible:border-primary md:flex"
           >
             <Search className="size-4" />
             <span className="flex-1 truncate text-left">Rechercher, aller à…</span>
-            <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[11px] sm:inline">Ctrl K</kbd>
+            <kbd className="pointer-events-none inline-flex h-6 items-center rounded-md border border-border/60 bg-background/60 px-2 font-mono text-[11px] font-medium">Ctrl K</kbd>
           </button>
-          <div className="ml-auto">
+          <div className="flex-1" />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="size-9 text-muted-foreground md:hidden" onClick={() => setPaletteOpen(true)} aria-label="Rechercher">
+              <Search className="size-[18px]" />
+            </Button>
+            <ThemeToggle />
             <NotificationBell />
           </div>
         </header>
