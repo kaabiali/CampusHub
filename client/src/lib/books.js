@@ -1,7 +1,7 @@
 export const ETAT_LABELS = { NEUF: 'Neuf', TRES_BON: 'Très bon', BON: 'Bon', ACCEPTABLE: 'Acceptable' };
 export const ETATS = Object.keys(ETAT_LABELS);
 
-const COVER_COLORS = ['#1e2a4a', '#2547d0', '#3f5e4b', '#7a3b2e', '#4b4f58', '#0f5c66', '#2e2a4f', '#8a5a12'];
+const COVER_COLORS = ['#1e2a4a', '#0049db', '#3f5e4b', '#7a3b2e', '#4b4f58', '#0f5c66', '#2e2a4f', '#8a5a12'];
 
 export function coverColor(seed = '') {
   let h = 0;

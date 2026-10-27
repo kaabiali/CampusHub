@@ -24,7 +24,7 @@ function pickFeatured(events) {
 
 function Featured({ event, onToggle, pending }) {
   return (
-    <section className="relative flex flex-col gap-6 overflow-hidden rounded-xl bg-[#2547d0] p-6 text-white sm:flex-row sm:items-center sm:p-8" aria-label="À la une">
+    <section className="relative flex flex-col gap-6 overflow-hidden rounded-xl bg-brand p-6 text-white sm:flex-row sm:items-center sm:p-8" aria-label="À la une">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.1]"
         style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '22px 22px', maskImage: 'linear-gradient(90deg, transparent 30%, black)' }}
@@ -44,7 +44,7 @@ function Featured({ event, onToggle, pending }) {
         </span>
         <span className="font-mono text-sm text-white/90 tabular">{placesLabel(event)}</span>
       </div>
-      <RegisterButton event={event} onToggle={onToggle} pending={pending} size="lg" className="relative h-11 bg-white px-5 text-[#1a36a6] hover:bg-white/90" />
+      <RegisterButton event={event} onToggle={onToggle} pending={pending} size="lg" className="relative h-11 bg-white px-5 text-ink hover:bg-white/90" />
     </section>
   );
 }
