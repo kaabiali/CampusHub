@@ -1078,6 +1078,29 @@ paths:
         '403': { $ref: '#/components/responses/Erreur' }
         '404': { $ref: '#/components/responses/Erreur' }
         '409': { $ref: '#/components/responses/Erreur' }
+  /admin/contenus/{type}/{id}:
+    parameters:
+      - { name: type, in: path, required: true, schema: { type: string, enum: [LIVRE, TRAJET, EVENEMENT, GROUPE] } }
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    delete:
+      tags: [Administration]
+      summary: "Supprimer un contenu (annonce, trajet, événement ou groupe)"
+      description: "Réservé aux administrateurs. Le motif est obligatoire et notifié à l’auteur ; les passagers, inscrits et membres concernés sont également prévenus."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motif]
+              properties:
+                motif: { type: string, minLength: 5, maxLength: 200, example: "Contenu signalé plusieurs fois pour tromperie." }
+      responses:
+        '204': { description: Effectué }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
   /admin/categories:
     post:
       tags: [Administration]

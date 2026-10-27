@@ -9,6 +9,7 @@ import { Ride } from '../models/Ride.js';
 import { Reservation } from '../models/Reservation.js';
 import { Group } from '../models/Group.js';
 import { Event, Registration } from '../models/Event.js';
+import { GroupMessage } from '../models/GroupMessage.js';
 import { Message } from '../models/Message.js';
 import { Report } from '../models/Report.js';
 import { requireAdmin, requireAuth } from '../lib/auth.js';
@@ -178,6 +179,78 @@ adminRouter.delete('/utilisateurs/:id', validate(param('id').isMongoId()), async
   disconnectUser(user._id);
   res.status(204).end();
 });
+
+// --- Suppression d’un contenu par un administrateur -------------------------
+// Deleting is a hard delete (the item leaves every list) and is always justified:
+// the author receives the reason, and the people who relied on the content
+// (passengers, attendees, group members) are warned too.
+const DELETABLE = {
+  LIVRE: { model: Book, auteur: 'vendeur', label: 'L’annonce', lien: '/livres', rapport: 'ANNONCE' },
+  TRAJET: { model: Ride, auteur: 'conducteur', label: 'Le trajet', lien: '/covoiturage', rapport: 'TRAJET' },
+  EVENEMENT: { model: Event, auteur: 'organisateur', label: 'L’événement', lien: '/evenements', rapport: 'EVENEMENT' },
+  GROUPE: { model: Group, auteur: 'createur', label: 'Le groupe', lien: '/groupes' },
+};
+
+const contentName = (type, doc) => (type === 'TRAJET' ? `${doc.lieuDepart} → ${doc.lieuArrivee}` : type === 'GROUPE' ? doc.nom : doc.titre);
+
+// Notification.contenu is capped at 300 characters.
+const moderationNotice = (text) => text.slice(0, 300);
+
+adminRouter.delete(
+  '/contenus/:type/:id',
+  validate(
+    param('type').isIn(Object.keys(DELETABLE)).withMessage('Type de contenu inconnu.'),
+    param('id').isMongoId(),
+    body('motif').trim().isLength({ min: 5, max: 200 }).withMessage('Indiquez le motif de la suppression (5 à 200 caractères).'),
+  ),
+  async (req, res) => {
+    const { type, id } = req.params;
+    const { motif } = req.body;
+    const target = DELETABLE[type];
+    const doc = await target.model.findById(id);
+    if (!doc) throw notFound('Contenu introuvable.');
+
+    const nom = contentName(type, doc);
+    const auteur = doc[target.auteur];
+    const raison = `Motif : ${motif}`;
+
+    // The author always learns why their content was removed.
+    await notify(auteur, {
+      type: 'MODERATION',
+      contenu: moderationNotice(`${target.label} « ${nom} » a été supprimé par un administrateur. ${raison}`),
+      lien: target.lien,
+    });
+
+    // Warn the people who relied on the content, then remove the dependants.
+    if (type === 'TRAJET') {
+      const passengers = await Reservation.find({ trajet: doc._id, statut: 'CONFIRMEE', passager: { $ne: auteur } }).select('passager').lean();
+      await Promise.all(passengers.map((p) => notify(p.passager, { type: 'MODERATION', contenu: moderationNotice(`Le trajet « ${nom} » a été retiré par un administrateur. ${raison}`), lien: target.lien })));
+      await Reservation.deleteMany({ trajet: doc._id });
+    } else if (type === 'EVENEMENT') {
+      const inscrits = await Registration.find({ evenement: doc._id, utilisateur: { $ne: auteur } }).select('utilisateur').lean();
+      await Promise.all(inscrits.map((r) => notify(r.utilisateur, { type: 'MODERATION', contenu: moderationNotice(`L’événement « ${nom} » a été retiré par un administrateur. ${raison}`), lien: target.lien })));
+      await Registration.deleteMany({ evenement: doc._id });
+    } else if (type === 'GROUPE') {
+      const membres = doc.membres.filter((m) => String(m.utilisateur) !== String(auteur));
+      await Promise.all(membres.map((m) => notify(m.utilisateur, { type: 'MODERATION', contenu: moderationNotice(`Le groupe « ${nom} » a été supprimé par un administrateur. ${raison}`), lien: target.lien })));
+      await Promise.all(doc.documents.map((d) => removeUpload(d.url)));
+      await GroupMessage.deleteMany({ groupe: doc._id });
+    } else if (type === 'LIVRE') {
+      await Promise.all(doc.photos.map((p) => removeUpload(p.url)));
+    }
+
+    // The content no longer exists: the reports pointing at it are settled.
+    if (target.rapport) {
+      await Report.updateMany(
+        { typeContenu: target.rapport, contenuId: doc._id, statut: 'EN_ATTENTE' },
+        { statut: 'TRAITE', traitePar: req.user._id, dateTraitement: new Date() },
+      );
+    }
+
+    await doc.deleteOne();
+    res.status(204).end();
+  },
+);
 
 adminRouter.post('/categories', validate(body('nom').trim().isLength({ min: 2, max: 60 }).withMessage('Nom de 2 à 60 caractères.'), body('description').optional().trim().isLength({ max: 200 })), async (req, res) => {
   try {

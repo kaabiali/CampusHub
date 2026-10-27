@@ -5,9 +5,11 @@ import { User } from '../src/models/User.js';
 import { Book } from '../src/models/Book.js';
 import { Category } from '../src/models/Category.js';
 import { Ride } from '../src/models/Ride.js';
+import { Reservation } from '../src/models/Reservation.js';
 import { Group } from '../src/models/Group.js';
+import { GroupMessage } from '../src/models/GroupMessage.js';
 import { Club } from '../src/models/Club.js';
-import { Event } from '../src/models/Event.js';
+import { Event, Registration } from '../src/models/Event.js';
 import { Message } from '../src/models/Message.js';
 import { Report } from '../src/models/Report.js';
 import { Notification } from '../src/models/Notification.js';
@@ -160,5 +162,80 @@ describe('modération', () => {
     const [r] = (await as(admin).get('/api/admin/signalements')).body.signalements;
     await as(admin).post(`/api/admin/signalements/${r._id}/traiter`);
     expect((await Message.findById(message._id)).contenu).toBe('[Message retiré par la modération]');
+  });
+});
+
+describe('suppression de contenus', () => {
+  it('exige un administrateur, un type connu et un motif', async () => {
+    const student = await createUser();
+    const admin = await createUser({ role: 'ADMIN' });
+    const book = await listing(await createUser());
+    const url = `/api/admin/contenus/LIVRE/${book._id}`;
+
+    expect((await as(student).delete(url).send({ motif: 'Contenu trompeur' })).body.error.code).toBe('ADMIN_REQUIS');
+    expect((await as(admin).delete(`/api/admin/contenus/INCONNU/${book._id}`).send({ motif: 'Contenu trompeur' })).body.error.code).toBe('VALIDATION');
+    const short = await as(admin).delete(url).send({ motif: 'non' });
+    expect(short.status).toBe(400);
+    expect(short.body.error.champs.motif).toMatch(/5 à 200/);
+    expect((await as(admin).delete(`/api/admin/contenus/LIVRE/${book._id}`).send({ motif: 'Annonce trompeuse' })).status).toBe(204);
+    expect(await Book.findById(book._id)).toBeNull();
+  });
+
+  it('supprime une annonce, prévient le vendeur et clôt les signalements', async () => {
+    const admin = await createUser({ role: 'ADMIN' });
+    const seller = await createUser();
+    const book = await listing(seller);
+    await as(await createUser()).post('/api/signalements').send({ typeContenu: 'ANNONCE', contenuId: book._id, motif: 'Prix trompeur' });
+
+    expect((await as(admin).delete(`/api/admin/contenus/LIVRE/${book._id}`).send({ motif: 'Annonce trompeuse' })).status).toBe(204);
+    expect(await Book.findById(book._id)).toBeNull();
+    expect((await Report.findOne({ contenuId: book._id })).statut).toBe('TRAITE');
+    const notification = await Notification.findOne({ utilisateur: seller._id, type: 'MODERATION' });
+    expect(notification.contenu).toContain(book.titre);
+    expect(notification.contenu).toContain('Annonce trompeuse');
+  });
+
+  it('supprime un trajet, ses réservations, et prévient conducteur et passagers', async () => {
+    const admin = await createUser({ role: 'ADMIN' });
+    const driver = await createUser();
+    const passenger = await createUser();
+    const ride = (await as(driver).post('/api/trajets').send({ lieuDepart: 'Ariana', lieuArrivee: 'Campus', dateDepart: inHours(20), placesTotales: 2, prix: 3 })).body.trajet;
+    await as(passenger).post(`/api/trajets/${ride._id}/reservations`).send({});
+
+    expect((await as(admin).delete(`/api/admin/contenus/TRAJET/${ride._id}`).send({ motif: 'Conducteur ne répond plus' })).status).toBe(204);
+    expect(await Ride.findById(ride._id)).toBeNull();
+    expect(await Reservation.countDocuments({ trajet: ride._id })).toBe(0);
+    expect((await Notification.findOne({ utilisateur: driver._id, type: 'MODERATION' })).contenu).toContain('Conducteur ne répond plus');
+    expect((await Notification.findOne({ utilisateur: passenger._id, type: 'MODERATION' })).contenu).toContain('retiré');
+  });
+
+  it('supprime un événement et ses inscriptions, et prévient organisateur et inscrits', async () => {
+    const admin = await createUser({ role: 'ADMIN' });
+    const leader = await createUser();
+    const attendee = await createUser();
+    const club = await Club.create({ nom: 'Club Suppression', responsables: [leader._id] });
+    const event = (await as(leader).post('/api/evenements').send({ club: String(club._id), titre: 'Atelier PHP', lieu: 'Salle 3', dateDebut: inHours(30) })).body.evenement;
+    await as(attendee).post(`/api/evenements/${event._id}/inscription`);
+
+    expect((await as(admin).delete(`/api/admin/contenus/EVENEMENT/${event._id}`).send({ motif: 'Salle déjà réservée' })).status).toBe(204);
+    expect(await Event.findById(event._id)).toBeNull();
+    expect(await Registration.countDocuments({ evenement: event._id })).toBe(0);
+    expect((await Notification.findOne({ utilisateur: leader._id, type: 'MODERATION' })).contenu).toContain('Salle déjà réservée');
+    expect((await Notification.findOne({ utilisateur: attendee._id, type: 'MODERATION' })).contenu).toContain('Atelier PHP');
+  });
+
+  it('supprime un groupe, ses messages, et prévient créateur et membres', async () => {
+    const admin = await createUser({ role: 'ADMIN' });
+    const creator = await createUser();
+    const member = await createUser();
+    const group = (await as(creator).post('/api/groupes').send({ nom: 'Groupe à retirer', matiere: 'Réseaux' })).body.groupe;
+    await as(member).post(`/api/groupes/${group._id}/membres`);
+    await GroupMessage.create({ groupe: group._id, auteur: creator._id, contenu: 'Bienvenue', clientId: 'msg-1' });
+
+    expect((await as(admin).delete(`/api/admin/contenus/GROUPE/${group._id}`).send({ motif: 'Contenu hors charte' })).status).toBe(204);
+    expect(await Group.findById(group._id)).toBeNull();
+    expect(await GroupMessage.countDocuments({ groupe: group._id })).toBe(0);
+    expect((await Notification.findOne({ utilisateur: creator._id, type: 'MODERATION' })).contenu).toContain('Contenu hors charte');
+    expect((await Notification.findOne({ utilisateur: member._id, type: 'MODERATION' })).contenu).toContain('supprimé');
   });
 });

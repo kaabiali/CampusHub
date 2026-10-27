@@ -19,6 +19,7 @@ import {
 import { EmptyState } from '@/components/EmptyState';
 import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
+import { AdminDeleteButton } from '@/components/admin/AdminDeleteButton';
 import { UserAvatar } from '@/components/UserAvatar';
 import { CapacityBar } from '@/components/groups/GroupCard';
 import { GroupChat } from '@/components/groups/GroupChat';
@@ -210,6 +211,19 @@ export default function GroupeDetail() {
             <Button disabled={full || join.isPending} onClick={() => join.mutate(id)}>
               {full ? 'Groupe complet' : 'Rejoindre le groupe'}
             </Button>
+          )}
+          {!group.estCreateur && (
+            <AdminDeleteButton
+              type="GROUPE"
+              id={group._id}
+              titre={group.nom}
+              invalidate={[['groupes']]}
+              onDeleted={() => navigate('/groupes')}
+              label="Supprimer le groupe"
+              variant="outline"
+              size="default"
+              className="w-full text-destructive hover:bg-destructive-soft hover:text-destructive"
+            />
           )}
         </div>
       </header>

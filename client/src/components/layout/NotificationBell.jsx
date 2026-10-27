@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, BellOff, CalendarDays, CarFront, MessageCircle } from 'lucide-react';
+import { Bell, BellOff, CalendarDays, CarFront, MessageCircle, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { get, post } from '@/lib/api';
 import { relative } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-const ICONS = { RESERVATION: CarFront, MESSAGE: MessageCircle, RAPPEL_EVENEMENT: CalendarDays };
+const ICONS = { RESERVATION: CarFront, MESSAGE: MessageCircle, RAPPEL_EVENEMENT: CalendarDays, MODERATION: ShieldAlert };
 
 export function useNotifications() {
   return useQuery({ queryKey: ['notifications'], queryFn: () => get('/notifications', { limit: 20 }), staleTime: 60_000 });

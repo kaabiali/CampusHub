@@ -17,6 +17,7 @@ import {
 import { BookCover } from '@/components/books/BookCover';
 import { BookFormSheet } from '@/components/books/BookFormSheet';
 import { ReportDialog } from '@/components/ReportDialog';
+import { AdminDeleteButton } from '@/components/admin/AdminDeleteButton';
 import { UserAvatar } from '@/components/UserAvatar';
 import { EmptyState } from '@/components/EmptyState';
 import { del, get, post } from '@/lib/api';
@@ -191,6 +192,18 @@ export default function LivreDetail() {
                 </Link>
               </Button>
             )
+          )}
+
+          {!owner && (
+            <AdminDeleteButton
+              type="LIVRE"
+              id={book._id}
+              titre={book.titre}
+              invalidate={[['annonces']]}
+              onDeleted={() => navigate('/livres')}
+              label="Supprimer l’annonce"
+              className="self-start text-destructive hover:bg-destructive-soft hover:text-destructive"
+            />
           )}
 
           <dl className="rounded-lg border bg-card px-4 py-1.5 shadow-xs">

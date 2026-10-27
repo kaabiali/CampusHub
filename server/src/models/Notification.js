@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const TYPES_NOTIFICATION = ['RESERVATION', 'MESSAGE', 'RAPPEL_EVENEMENT'];
+export const TYPES_NOTIFICATION = ['RESERVATION', 'MESSAGE', 'RAPPEL_EVENEMENT', 'MODERATION'];
 
 const notificationSchema = new mongoose.Schema(
   {

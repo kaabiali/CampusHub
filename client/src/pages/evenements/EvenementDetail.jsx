@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Ban, Bell, Clock, Flag, MapPin, MessageCircle, Pencil, TriangleAlert, Users } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { EmptyState } from '@/components/EmptyState';
 import { ReportDialog } from '@/components/ReportDialog';
+import { AdminDeleteButton } from '@/components/admin/AdminDeleteButton';
 import { UserAvatar } from '@/components/UserAvatar';
 import { CapacityBar } from '@/components/groups/GroupCard';
 import { DateBlock, RegisterButton, placesLabel } from '@/components/events/EventCard';
@@ -24,6 +25,7 @@ import { EventFormSheet } from '@/components/events/EventFormSheet';
 import { useEventRegistration } from '@/hooks/useEventRegistration';
 import { get, post } from '@/lib/api';
 import { dayLong, fullName, relative, time } from '@/lib/format';
+import { useAuth } from '@/providers/AuthProvider';
 
 function Attendees({ open, onOpenChange, eventId }) {
   const { data, isPending } = useQuery({ queryKey: ['evenement', eventId, 'inscrits'], queryFn: () => get(`/evenements/${eventId}/inscrits`).then((r) => r.inscrits), enabled: open });
@@ -55,6 +57,8 @@ function Attendees({ open, onOpenChange, eventId }) {
 
 export default function EvenementDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const registration = useEventRegistration();
   const [editing, setEditing] = useState(false);
@@ -155,6 +159,17 @@ export default function EvenementDetail() {
                     <Ban /> Annuler l’événement
                   </Button>
                 </>
+              )}
+              {user?.role === 'ADMIN' && (
+                <AdminDeleteButton
+                  type="EVENEMENT"
+                  id={event._id}
+                  titre={event.titre}
+                  invalidate={[['evenements'], ['evenement', id]]}
+                  onDeleted={() => navigate('/evenements')}
+                  label="Supprimer définitivement"
+                  className="text-destructive hover:bg-destructive-soft hover:text-destructive"
+                />
               )}
             </div>
           )}

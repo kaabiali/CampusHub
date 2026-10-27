@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Ban, Flag, MapPin, MessageCircle, Pencil, TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { EmptyState } from '@/components/EmptyState';
 import { ReportDialog } from '@/components/ReportDialog';
+import { AdminDeleteButton } from '@/components/admin/AdminDeleteButton';
 import { UserAvatar } from '@/components/UserAvatar';
 import { RatingBadge, StarRating } from '@/components/StarRating';
 import { RideTimeline } from '@/components/rides/RideCard';
@@ -101,6 +102,7 @@ function RateDriver({ ride }) {
 export default function TrajetDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const reserve = useReserve();
   const [seats, setSeats] = useState('1');
@@ -279,6 +281,15 @@ export default function TrajetDetail() {
               <Flag className="size-4" /> Signaler ce trajet
             </button>
           )}
+          <AdminDeleteButton
+            type="TRAJET"
+            id={ride._id}
+            titre={`${ride.lieuDepart} → ${ride.lieuArrivee}`}
+            invalidate={[['trajets'], ['mes-trajets']]}
+            onDeleted={() => navigate('/covoiturage')}
+            label="Supprimer le trajet"
+            className="self-start text-destructive hover:bg-destructive-soft hover:text-destructive"
+          />
         </aside>
       </div>
 
