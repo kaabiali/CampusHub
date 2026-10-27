@@ -42,6 +42,36 @@ describe('publication et recherche', () => {
     const byDay = await as(user).get(`/api/trajets?date=${tomorrowPlus}`);
     expect(byDay.body.trajets.some((t) => t.lieuDepart === 'Sidi Bou Saïd')).toBe(true);
   });
+
+  it('enregistre et met à jour des coordonnées de carte facultatives', async () => {
+    const driver = await createUser();
+    const created = await offer(driver, { coordDepart: { lat: 36.8783, lng: 10.3247 }, coordArrivee: { lat: '36.8395', lng: '10.1434' } });
+    expect(created.status).toBe(201);
+    expect(created.body.trajet.coordDepart).toMatchObject({ lat: 36.8783, lng: 10.3247 });
+    expect(created.body.trajet.coordArrivee.lat).toBeCloseTo(36.8395);
+    expect(created.body.trajet.coordArrivee.lng).toBeCloseTo(10.1434);
+
+    const { _id } = created.body.trajet;
+    expect((await Ride.findById(_id)).coordDepart.lat).toBeCloseTo(36.8783);
+
+    const updated = await as(driver).patch(`/api/trajets/${_id}`).send({ coordArrivee: { lat: 36.8, lng: 10.1 } });
+    expect(updated.body.trajet.coordArrivee).toMatchObject({ lat: 36.8, lng: 10.1 });
+
+    const cleared = await as(driver).patch(`/api/trajets/${_id}`).send({ coordDepart: null });
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.trajet.coordDepart).toBeNull();
+  });
+
+  it('refuse des coordonnées invalides', async () => {
+    const driver = await createUser();
+    const outOfRange = await offer(driver, { coordDepart: { lat: 120, lng: 10 } });
+    expect(outOfRange.status).toBe(400);
+    expect(outOfRange.body.error.champs.coordDepart).toMatch(/invalides/);
+
+    const notAPoint = await offer(driver, { coordArrivee: 'Campus' });
+    expect(notAPoint.status).toBe(400);
+    expect(notAPoint.body.error.champs.coordArrivee).toBeDefined();
+  });
 });
 
 describe('réservation', () => {

@@ -10,6 +10,7 @@ import { hashPassword } from '../src/lib/passwords.js';
 import { tunisDay } from '../src/lib/time.js';
 import { uploadsRoot } from '../src/lib/upload.js';
 import { suggestPrice } from '../src/lib/pricing.js';
+import { coordsOf } from '../src/lib/places.js';
 import { conversationKey, Message } from '../src/models/Message.js';
 import { User } from '../src/models/User.js';
 import { Activity } from '../src/models/Activity.js';
@@ -19,6 +20,7 @@ import { Ride } from '../src/models/Ride.js';
 import { Reservation } from '../src/models/Reservation.js';
 import { Rating, refreshDriverRating } from '../src/models/Rating.js';
 import { Group } from '../src/models/Group.js';
+import { GroupMessage } from '../src/models/GroupMessage.js';
 import { Club } from '../src/models/Club.js';
 import { Event, Registration } from '../src/models/Event.js';
 import { Notification } from '../src/models/Notification.js';
@@ -145,13 +147,14 @@ async function seed() {
   for (const [day, hh, mm, depart, duree, driver, seats, prix, vehicule, passengers] of RIDES) {
     const dateDepart = at(day, hh, mm);
     if (await Ride.exists({ conducteur: U(driver), dateDepart })) continue;
-    const ride = await Ride.create({ conducteur: U(driver), lieuDepart: depart, lieuArrivee: 'Campus', dateDepart, dureeMinutes: duree, placesTotales: seats, placesDisponibles: seats - passengers.length, prix, vehicule, statut: seats === passengers.length ? 'COMPLET' : 'OUVERT', details: 'Rendez-vous 5 minutes avant le départ.' });
+    const ride = await Ride.create({ conducteur: U(driver), lieuDepart: depart, lieuArrivee: 'Campus', coordDepart: coordsOf(depart), coordArrivee: coordsOf('Campus'), dateDepart, dureeMinutes: duree, placesTotales: seats, placesDisponibles: seats - passengers.length, prix, vehicule, statut: seats === passengers.length ? 'COMPLET' : 'OUVERT', details: 'Rendez-vous 5 minutes avant le départ.' });
     for (const p of passengers) await Reservation.create({ trajet: ride._id, passager: U(p), nbPlaces: 1 });
     created.push(ride);
   }
   for (let d = 2; d <= 9; d++) {
     const driver = pick(['Amine', 'Skander', 'Nour', 'Ahmed', 'Bilel']);
-    const ride = await Ride.create({ conducteur: U(driver), lieuDepart: pick(['La Marsa, centre', 'Ariana, Menzah 6', 'Sidi Bou Saïd, gare TGM', 'Lac 2']), lieuArrivee: 'Campus', dateDepart: at(-d, 7, 30), dureeMinutes: 35, placesTotales: 3, placesDisponibles: 1, prix: 3, statut: 'TERMINE' });
+    const depart = pick(['La Marsa, centre', 'Ariana, Menzah 6', 'Sidi Bou Saïd, gare TGM', 'Lac 2']);
+    const ride = await Ride.create({ conducteur: U(driver), lieuDepart: depart, lieuArrivee: 'Campus', coordDepart: coordsOf(depart), coordArrivee: coordsOf('Campus'), dateDepart: at(-d, 7, 30), dureeMinutes: 35, placesTotales: 3, placesDisponibles: 1, prix: 3, statut: 'TERMINE' });
     for (const p of [pick(['Rania', 'Yasmine', 'Ines']), pick(['Oussama', 'Firas', 'Sarra'])]) {
       const res = await Reservation.create({ trajet: ride._id, passager: U(p), nbPlaces: 1 }).catch(() => null);
       if (res && rand() > 0.25) await Rating.create({ reservation: res._id, trajet: ride._id, auteur: U(p), conducteur: U(driver), note: rand() > 0.3 ? 5 : 4, commentaire: pick(['Ponctuel', 'Très sympa', '', 'Conduite prudente']) });
@@ -209,6 +212,21 @@ async function seed() {
       seances: sessions.map(([d, h, sujet, lieu]) => ({ date: at(d, h), duree: 90, sujet, lieu, creePar: U(creator) })),
       documents: docs.map((nomFichier) => ({ nomFichier, ...writePdf(nomFichier), deposePar: U(pick([creator, ...members])) })),
     });
+  }
+
+  // A few group-chat messages so the discussion area isn't empty in the demo.
+  const proba = await Group.findOne({ nom: 'Probabilités, révision du partiel' });
+  if (proba && !(await GroupMessage.exists({ groupe: proba._id }))) {
+    const GROUP_MESSAGES = [
+      ['Yasmine', "J'ai ajouté le résumé du chapitre 3 dans les documents.", 3100],
+      ['Mariem', 'Merci ! On le relit jeudi avant la séance ?', 3050],
+      ['Oussama', 'Je peux préparer deux exercices sur les lois continues.', 2980],
+      ['Rania', 'Parfait, je m’occupe des annales de l’an dernier.', 2940],
+    ];
+    for (const [auteur, contenu, minutesAgo] of GROUP_MESSAGES) {
+      const message = await GroupMessage.create({ groupe: proba._id, auteur: U(auteur), contenu, clientId: `seed-${randomBytes(6).toString('hex')}` });
+      await backdate(GroupMessage, message._id, 'dateEnvoi', new Date(Date.now() - minutesAgo * 60 * 1000));
+    }
   }
 
   // Conversations from the mockup's messaging screen.

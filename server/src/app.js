@@ -14,7 +14,8 @@ import { usersRouter } from './routes/users.js';
 import { booksRouter } from './routes/books.js';
 import { categoriesRouter } from './routes/categories.js';
 import { reportsRouter } from './routes/reports.js';
-import { reservationsRouter, ridesRouter } from './routes/rides.js';
+import { ridesRouter, reservationsRouter } from './routes/rides.js';
+import { geoRouter } from './routes/geo.js';
 import { groupsRouter } from './routes/groups.js';
 import { clubsRouter } from './routes/clubs.js';
 import { eventsRouter } from './routes/events.js';
@@ -51,6 +52,7 @@ export function createApp() {
   app.use('/api/signalements', reportsRouter);
   app.use('/api/trajets', ridesRouter);
   app.use('/api/reservations', reservationsRouter);
+  app.use('/api/geo', geoRouter);
   app.use('/api/groupes', groupsRouter);
   app.use('/api/clubs', clubsRouter);
   app.use('/api/evenements', eventsRouter);

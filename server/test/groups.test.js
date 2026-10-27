@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import { app, as, createUser } from './helpers.js';
 import { Group } from '../src/models/Group.js';
+import { GroupMessage } from '../src/models/GroupMessage.js';
 
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
 const inHours = (h) => new Date(Date.now() + h * 3600 * 1000).toISOString();
@@ -110,6 +111,97 @@ describe('documents', () => {
     expect(dl.headers['content-disposition']).toMatch(/R%C3%A9sum%C3%A9/);
 
     expect((await as(owner).delete(`/api/groupes/${_id}/documents/${doc._id}`)).status).toBe(204);
+  });
+});
+
+describe('messagerie de groupe', () => {
+  it('réserve la discussion aux membres et dédoublonne les renvois', async () => {
+    const owner = await createUser();
+    const [member, outsider] = [await createUser(), await createUser()];
+    const { _id } = (await createGroup(owner)).body.groupe;
+    await as(member).post(`/api/groupes/${_id}/membres`);
+
+    expect((await as(outsider).get(`/api/groupes/${_id}/messages`)).body.error.code).toBe('PAS_MEMBRE');
+    expect((await as(outsider).post(`/api/groupes/${_id}/messages`).send({ contenu: 'Bonjour', clientId: 'x' })).status).toBe(403);
+
+    const first = await as(member).post(`/api/groupes/${_id}/messages`).send({ contenu: '  Bonjour tout le monde  ', clientId: 'client-1' });
+    expect(first.status).toBe(201);
+    expect(first.body.message).toMatchObject({ contenu: 'Bonjour tout le monde', clientId: 'client-1' });
+    expect(first.body.message.auteur._id).toBe(String(member._id));
+
+    const again = await as(member).post(`/api/groupes/${_id}/messages`).send({ contenu: 'Bonjour tout le monde', clientId: 'client-1' });
+    expect(again.status).toBe(200);
+    expect(again.body.duplicate).toBe(true);
+    expect(await GroupMessage.countDocuments({ groupe: _id })).toBe(1);
+
+    expect((await as(owner).get(`/api/groupes/${_id}/messages`)).body.messages.map((m) => m.contenu)).toEqual(['Bonjour tout le monde']);
+  });
+
+  it('pagine les messages et les isole par groupe', async () => {
+    const owner = await createUser();
+    const { _id } = (await createGroup(owner)).body.groupe;
+    const other = (await createGroup(owner, { nom: 'Autre groupe de révision', matiere: 'Maths' })).body.groupe;
+
+    const created = [];
+    for (let i = 0; i < 3; i++) {
+      created.push((await as(owner).post(`/api/groupes/${_id}/messages`).send({ contenu: `Message ${i}`, clientId: `c${i}` })).body.message);
+    }
+    await as(owner).post(`/api/groupes/${other._id}/messages`).send({ contenu: 'Ailleurs', clientId: 'other' });
+    for (let i = 0; i < 3; i++) {
+      await GroupMessage.updateOne({ _id: created[i]._id }, { $set: { dateEnvoi: new Date(Date.UTC(2026, 0, 1, 10, i)) } });
+    }
+
+    const page = await as(owner).get(`/api/groupes/${_id}/messages?limit=2`);
+    expect(page.body.messages.map((m) => m.contenu)).toEqual(['Message 1', 'Message 2']);
+    expect(page.body.plusAnciens).toBe(true);
+
+    const older = await as(owner).get(`/api/groupes/${_id}/messages?limit=2&avant=${encodeURIComponent(page.body.messages[0].dateEnvoi)}`);
+    expect(older.body.messages.map((m) => m.contenu)).toEqual(['Message 0']);
+    expect(older.body.plusAnciens).toBe(false);
+    expect((await as(owner).get(`/api/groupes/${other._id}/messages`)).body.messages.map((m) => m.contenu)).toEqual(['Ailleurs']);
+  });
+});
+
+describe('réunions', () => {
+  it('ouvre une salle réservée aux membres et la partage avec eux', async () => {
+    const owner = await createUser();
+    const [member, outsider] = [await createUser(), await createUser()];
+    const { _id } = (await createGroup(owner)).body.groupe;
+    await as(member).post(`/api/groupes/${_id}/membres`);
+
+    expect((await as(outsider).post(`/api/groupes/${_id}/reunion`)).body.error.code).toBe('PAS_MEMBRE');
+    expect((await as(outsider).get(`/api/groupes/${_id}`)).body.groupe.reunion).toBeNull();
+
+    const created = await as(member).post(`/api/groupes/${_id}/reunion`).send({ sujet: 'Révision du partiel' });
+    expect(created.status).toBe(201);
+    expect(created.body.reunion).toMatchObject({ sujet: 'Révision du partiel' });
+    expect(created.body.reunion.url).toMatch(/^https:\/\/meet\.jit\.si\/CampusHub-/);
+    expect(created.body.reunion.demarrePar._id).toBe(String(member._id));
+
+    const detail = await as(owner).get(`/api/groupes/${_id}`);
+    expect(detail.body.groupe.reunion.sujet).toBe('Révision du partiel');
+    expect((await as(outsider).get(`/api/groupes/${_id}`)).body.groupe.reunion).toBeNull();
+
+    // Opening again joins the existing room instead of creating a second one.
+    const again = await as(owner).post(`/api/groupes/${_id}/reunion`).send({ sujet: 'Autre' });
+    expect(again.status).toBe(200);
+    expect(again.body.reunion.url).toBe(created.body.reunion.url);
+
+    expect((await as(owner).delete(`/api/groupes/${_id}/reunion`)).status).toBe(204);
+    expect((await as(owner).get(`/api/groupes/${_id}`)).body.groupe.reunion).toBeNull();
+  });
+
+  it('réserve la fermeture à l’organisateur ou au créateur du groupe', async () => {
+    const owner = await createUser();
+    const [starter, member] = [await createUser(), await createUser()];
+    const { _id } = (await createGroup(owner)).body.groupe;
+    await as(starter).post(`/api/groupes/${_id}/membres`);
+    await as(member).post(`/api/groupes/${_id}/membres`);
+    await as(starter).post(`/api/groupes/${_id}/reunion`).send({});
+
+    expect((await as(member).delete(`/api/groupes/${_id}/reunion`)).body.error.code).toBe('PAS_AUTEUR');
+    expect((await as(starter).delete(`/api/groupes/${_id}/reunion`)).status).toBe(204);
+    expect((await as(starter).delete(`/api/groupes/${_id}/reunion`)).status).toBe(404);
   });
 });
 
