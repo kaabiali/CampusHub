@@ -485,6 +485,33 @@ paths:
         '429': { $ref: '#/components/responses/Erreur' }
         '502': { $ref: '#/components/responses/Erreur' }
         '504': { $ref: '#/components/responses/Erreur' }
+  /geo/itineraire:
+    get:
+      tags: [Covoiturage]
+      summary: "Estimer la durée et la distance d’un trajet (itinéraire routier, sinon estimation)"
+      description: "Fournir soit les deux adresses (`depart`, `arrivee`), soit les quatre coordonnées."
+      parameters:
+        - { name: depart, in: query, required: false, schema: { type: string, minLength: 3, maxLength: 120 } }
+        - { name: arrivee, in: query, required: false, schema: { type: string, minLength: 3, maxLength: 120 } }
+        - { name: departLat, in: query, required: false, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: departLng, in: query, required: false, schema: { type: number, minimum: -180, maximum: 180 } }
+        - { name: arriveeLat, in: query, required: false, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: arriveeLng, in: query, required: false, schema: { type: number, minimum: -180, maximum: 180 } }
+      responses:
+        '200':
+          description: "Durée et distance estimées pour le trajet"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dureeMinutes: { type: integer, example: 24, description: "Entre 5 et 240 minutes" }
+                  distanceKm: { type: number, example: 11.2 }
+                  source: { type: string, enum: [route, estimation], description: "route = moteur d’itinéraire, estimation = repli hors ligne" }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
   /groupes:
     get:
       tags: [Groupes]

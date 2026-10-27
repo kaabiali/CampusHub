@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
 import { RideMapPicker } from '@/components/map/RideMap';
-import { patch, post } from '@/lib/api';
+import { get, patch, post } from '@/lib/api';
 import { addMinutes, fromTunisInput, toTunisInput } from '@/lib/format';
 
 const blank = () => ({
@@ -36,12 +36,72 @@ const fromRide = (r) => ({
   details: r.details || '',
 });
 
+// Identifies the current origin/destination so a stale estimate is never displayed
+// after the user changes one of them.
+const signatureOf = (form) =>
+  form.coordDepart && form.coordArrivee
+    ? `c:${form.coordDepart.lat},${form.coordDepart.lng};${form.coordArrivee.lat},${form.coordArrivee.lng}`
+    : `l:${form.lieuDepart.trim()}|${form.lieuArrivee.trim()}`;
+
 export function RideForm({ ride, onDone, firstFieldRef, compact }) {
   const [form, setForm] = useState(() => (ride ? fromRide(ride) : blank()));
+  // A duration typed (or already saved) by the user is never overwritten automatically.
+  const [dureeManuelle, setDureeManuelle] = useState(Boolean(ride?.dureeMinutes));
+  const [estimation, setEstimation] = useState(null);
+  const [estimating, setEstimating] = useState(false);
+  const [recalc, setRecalc] = useState(0);
   const queryClient = useQueryClient();
+
   useEffect(() => {
-    if (ride) setForm(fromRide(ride));
+    if (ride) {
+      setForm(fromRide(ride));
+      setDureeManuelle(Boolean(ride.dureeMinutes));
+    }
   }, [ride]);
+
+  // Ask the API for the road duration as soon as both ends are known (pins first,
+  // then addresses), and fill the field unless the user chose their own value.
+  useEffect(() => {
+    if (dureeManuelle) {
+      setEstimating(false);
+      return undefined;
+    }
+
+    const { coordDepart, coordArrivee } = form;
+    const withCoords = Boolean(coordDepart && coordArrivee);
+    const withLabels = form.lieuDepart.trim().length >= 3 && form.lieuArrivee.trim().length >= 3;
+    if (!withCoords && !withLabels) {
+      setEstimation(null);
+      setEstimating(false);
+      return undefined;
+    }
+
+    const sig = signatureOf(form);
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setEstimating(true);
+      try {
+        const params = withCoords
+          ? { departLat: coordDepart.lat, departLng: coordDepart.lng, arriveeLat: coordArrivee.lat, arriveeLng: coordArrivee.lng }
+          : { depart: form.lieuDepart.trim(), arrivee: form.lieuArrivee.trim() };
+        const data = await get('/geo/itineraire', params);
+        if (cancelled) return;
+        setEstimation({ ...data, sig });
+        setForm((f) => ({ ...f, dureeMinutes: String(data.dureeMinutes) }));
+      } catch {
+        if (!cancelled) setEstimation(null);
+      } finally {
+        if (!cancelled) setEstimating(false);
+      }
+    }, withCoords ? 300 : 900);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // `form` is read above; only the fields that change the route are dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.coordDepart, form.coordArrivee, form.lieuDepart, form.lieuArrivee, dureeManuelle, recalc]);
 
   const save = useMutation({
     mutationFn: () => {
@@ -59,7 +119,11 @@ export function RideForm({ ride, onDone, firstFieldRef, compact }) {
       queryClient.invalidateQueries({ queryKey: ['mes-trajets'] });
       queryClient.invalidateQueries({ queryKey: ['trajet', trajet._id] });
       toast.success(ride ? 'Trajet mis à jour.' : 'Trajet publié.');
-      if (!ride) setForm(blank());
+      if (!ride) {
+        setForm(blank());
+        setDureeManuelle(false);
+        setEstimation(null);
+      }
       onDone?.(trajet);
     },
   });
@@ -81,6 +145,22 @@ export function RideForm({ ride, onDone, firstFieldRef, compact }) {
       ...(point?.label ? { [labelKey]: point.label.slice(0, 80) } : {}),
     }));
   };
+
+  // Only show an estimate that still matches the current origin/destination.
+  const current = estimation && estimation.sig === signatureOf(form) ? estimation : null;
+  const km = current?.distanceKm;
+  const aideDuree = estimating
+    ? 'Estimation de la durée…'
+    : current
+      ? [
+          `${dureeManuelle ? '' : '≈ '}${current.dureeMinutes} min`,
+          km !== undefined ? `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(km)} km` : null,
+          current.source === 'route' ? 'itinéraire routier' : 'estimation',
+          dureeManuelle ? 'durée personnalisée' : 'modifiable',
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : 'Remplie automatiquement dès que le départ et l’arrivée sont connus.';
 
   return (
     <form
@@ -115,8 +195,40 @@ export function RideForm({ ride, onDone, firstFieldRef, compact }) {
         <Field label="Date et heure" error={champs.dateDepart}>
           <Input type="datetime-local" value={form.dateDepart} onChange={set('dateDepart')} required />
         </Field>
-        <Field label="Durée (min)" optional error={champs.dureeMinutes}>
-          <Input inputMode="numeric" value={form.dureeMinutes} onChange={set('dureeMinutes')} placeholder="35" />
+        <Field
+          label="Durée (min)"
+          optional
+          error={champs.dureeMinutes}
+          help={
+            <span>
+              {aideDuree}
+              {dureeManuelle && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setDureeManuelle(false);
+                      setRecalc((n) => n + 1);
+                    }}
+                  >
+                    Recalculer
+                  </button>
+                </>
+              )}
+            </span>
+          }
+        >
+          <Input
+            inputMode="numeric"
+            value={form.dureeMinutes}
+            onChange={(e) => {
+              setDureeManuelle(true);
+              set('dureeMinutes')(e);
+            }}
+            placeholder="35"
+          />
         </Field>
       </div>
       <div className="grid grid-cols-2 gap-3">

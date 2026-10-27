@@ -19,6 +19,8 @@ export const config = {
   clientUrl: env.CLIENT_URL || 'http://localhost:5173',
   mlUrl: env.ML_URL || 'http://localhost:5001',
   geoUrl: env.GEO_URL || 'https://nominatim.openstreetmap.org',
+  // Routing engine used to estimate a ride duration (OSRM-compatible API).
+  routingUrl: env.ROUTING_URL || 'https://router.project-osrm.org',
   smtpHost: env.SMTP_HOST || 'localhost',
   smtpPort: Number(env.SMTP_PORT) || 1025,
   mailFrom: env.MAIL_FROM || 'CampusHub <no-reply@campus.tn>',
