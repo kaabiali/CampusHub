@@ -6,12 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
+import { RideMapPicker } from '@/components/map/RideMap';
 import { patch, post } from '@/lib/api';
 import { addMinutes, fromTunisInput, toTunisInput } from '@/lib/format';
 
 const blank = () => ({
   lieuDepart: '',
   lieuArrivee: 'Campus',
+  coordDepart: null,
+  coordArrivee: null,
   dateDepart: toTunisInput(addMinutes(new Date(), 24 * 60)).slice(0, 11) + '08:00',
   placesTotales: '3',
   prix: '3',
@@ -23,6 +26,8 @@ const blank = () => ({
 const fromRide = (r) => ({
   lieuDepart: r.lieuDepart,
   lieuArrivee: r.lieuArrivee,
+  coordDepart: r.coordDepart || null,
+  coordArrivee: r.coordArrivee || null,
   dateDepart: toTunisInput(r.dateDepart),
   placesTotales: String(r.placesTotales),
   prix: String(r.prix),
@@ -60,6 +65,22 @@ export function RideForm({ ride, onDone, firstFieldRef, compact }) {
   });
   const champs = save.error?.champs || {};
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  // Typing a place by hand detaches it from the pin: otherwise the map would show a
+  // route to an old coordinate that no longer matches the label the user just wrote.
+  const setLieu = (k, coordKey) => (e) => {
+    const value = e.target.value;
+    setForm((f) => ({ ...f, [k]: value, [coordKey]: null }));
+  };
+  const setPoint = (part, point) => {
+    const coordKey = part === 'depart' ? 'coordDepart' : 'coordArrivee';
+    const labelKey = part === 'depart' ? 'lieuDepart' : 'lieuArrivee';
+    setForm((f) => ({
+      ...f,
+      [coordKey]: point ? { lat: point.lat, lng: point.lng } : null,
+      // Reverse geocoding fills a short label; only replace the text when it is provided.
+      ...(point?.label ? { [labelKey]: point.label.slice(0, 80) } : {}),
+    }));
+  };
 
   return (
     <form
@@ -71,10 +92,24 @@ export function RideForm({ ride, onDone, firstFieldRef, compact }) {
     >
       <FormError error={save.error} />
       <Field label="Départ" error={champs.lieuDepart}>
-        <Input ref={firstFieldRef} value={form.lieuDepart} onChange={set('lieuDepart')} placeholder="Ex. Ariana, Menzah 6" required />
+        <Input ref={firstFieldRef} value={form.lieuDepart} onChange={setLieu('lieuDepart', 'coordDepart')} placeholder="Ex. Ariana, Menzah 6" required />
       </Field>
       <Field label="Arrivée" error={champs.lieuArrivee}>
-        <Input value={form.lieuArrivee} onChange={set('lieuArrivee')} required />
+        <Input value={form.lieuArrivee} onChange={setLieu('lieuArrivee', 'coordArrivee')} required />
+      </Field>
+      <Field
+        label="Itinéraire sur la carte"
+        optional
+        error={champs.coordDepart || champs.coordArrivee}
+      >
+        <RideMapPicker
+          depart={form.coordDepart}
+          arrivee={form.coordArrivee}
+          departLabel={form.lieuDepart}
+          arriveeLabel={form.lieuArrivee}
+          onChange={setPoint}
+          height={compact ? 220 : 260}
+        />
       </Field>
       <div className={compact ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'}>
         <Field label="Date et heure" error={champs.dateDepart}>

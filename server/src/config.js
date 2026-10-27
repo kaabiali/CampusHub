@@ -18,6 +18,7 @@ export const config = {
   jwtSecret: env.JWT_SECRET || 'dev-only-secret-not-for-production',
   clientUrl: env.CLIENT_URL || 'http://localhost:5173',
   mlUrl: env.ML_URL || 'http://localhost:5001',
+  geoUrl: env.GEO_URL || 'https://nominatim.openstreetmap.org',
   smtpHost: env.SMTP_HOST || 'localhost',
   smtpPort: Number(env.SMTP_PORT) || 1025,
   mailFrom: env.MAIL_FROM || 'CampusHub <no-reply@campus.tn>',

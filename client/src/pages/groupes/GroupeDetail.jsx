@@ -21,7 +21,9 @@ import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
 import { UserAvatar } from '@/components/UserAvatar';
 import { CapacityBar } from '@/components/groups/GroupCard';
+import { GroupChat } from '@/components/groups/GroupChat';
 import { GroupFormSheet } from '@/components/groups/GroupFormSheet';
+import { GroupMeeting } from '@/components/groups/GroupMeeting';
 import { useJoinGroup } from '@/hooks/useJoinGroup';
 import { api, del, get, post } from '@/lib/api';
 import { addMinutes, dayShort, fromTunisInput, fullName, monthShort, dayNum, relative, shortName, time, toTunisInput } from '@/lib/format';
@@ -214,6 +216,8 @@ export default function GroupeDetail() {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="flex flex-col gap-6">
+          <GroupChat groupId={id} estMembre={group.estMembre} />
+
           <section className="flex flex-col gap-3" aria-labelledby="seances">
             <div className="flex items-center justify-between gap-3">
               <h2 id="seances" className="font-semibold">
@@ -271,6 +275,7 @@ export default function GroupeDetail() {
                     ref={fileRef}
                     type="file"
                     accept="application/pdf"
+                    aria-label="Choisir un PDF à partager"
                     className="sr-only"
                     tabIndex={-1}
                     onChange={(e) => {
@@ -315,31 +320,34 @@ export default function GroupeDetail() {
           </section>
         </div>
 
-        <aside className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-xs" aria-labelledby="membres">
-          <h2 id="membres" className="font-semibold">
-            Membres <span className="font-normal text-muted-foreground">({group.nbMembres})</span>
-          </h2>
-          <ul className="flex flex-col gap-1">
-            {group.membres.map((m) => (
-              <li key={m.utilisateur._id} className="flex items-center gap-2.5 rounded-md p-1.5">
-                <UserAvatar user={m.utilisateur} className="size-8" tone={m.role === 'CREATEUR' ? 'accent' : 'muted'} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{String(m.utilisateur._id) === String(user._id) ? 'Vous' : fullName(m.utilisateur)}</p>
-                  <p className="truncate text-xs text-muted-foreground">{m.role === 'CREATEUR' ? 'Animateur' : m.utilisateur.filiere || 'Membre'}</p>
-                </div>
-                {group.estCreateur && m.role !== 'CREATEUR' && (
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label={`Retirer ${fullName(m.utilisateur)}`}
-                    onClick={() => setConfirm({ title: `Retirer ${fullName(m.utilisateur)} ?`, description: 'Ce membre pourra rejoindre à nouveau le groupe.', confirm: 'Retirer', onConfirm: () => removeMember.mutate(m.utilisateur._id) })}
-                  >
-                    <X />
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
+        <aside className="flex flex-col gap-4">
+          <GroupMeeting groupId={id} reunion={group.reunion} estMembre={group.estMembre} estCreateur={group.estCreateur} />
+          <section className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-xs" aria-labelledby="membres">
+            <h2 id="membres" className="font-semibold">
+              Membres <span className="font-normal text-muted-foreground">({group.nbMembres})</span>
+            </h2>
+            <ul className="flex flex-col gap-1">
+              {group.membres.map((m) => (
+                <li key={m.utilisateur._id} className="flex items-center gap-2.5 rounded-md p-1.5">
+                  <UserAvatar user={m.utilisateur} className="size-8" tone={m.role === 'CREATEUR' ? 'accent' : 'muted'} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{String(m.utilisateur._id) === String(user._id) ? 'Vous' : fullName(m.utilisateur)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{m.role === 'CREATEUR' ? 'Animateur' : m.utilisateur.filiere || 'Membre'}</p>
+                  </div>
+                  {group.estCreateur && m.role !== 'CREATEUR' && (
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={`Retirer ${fullName(m.utilisateur)}`}
+                      onClick={() => setConfirm({ title: `Retirer ${fullName(m.utilisateur)} ?`, description: 'Ce membre pourra rejoindre à nouveau le groupe.', confirm: 'Retirer', onConfirm: () => removeMember.mutate(m.utilisateur._id) })}
+                    >
+                      <X />
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
         </aside>
       </div>
 

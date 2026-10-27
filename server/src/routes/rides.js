@@ -77,11 +77,32 @@ ridesRouter.get('/:id', requireAuth(), validate(param('id').isMongoId()), async 
   res.json({ trajet: { ...ride, passagers: passagers.map((p) => ({ ...p.passager, nbPlaces: p.nbPlaces })), maReservation, monAvis } });
 });
 
+const isPoint = (v) => {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+  const lat = Number(v.lat);
+  const lng = Number(v.lng);
+  return Number.isFinite(lat) && lat >= -90 && lat <= 90 && Number.isFinite(lng) && lng >= -180 && lng <= 180;
+};
+
+// A map point is optional (existing rides and API clients keep working without one),
+// but when it is sent it must be a real coordinate pair so the map never renders garbage.
+const coordField = (name, label) =>
+  body(name)
+    .optional({ values: 'null' })
+    .custom((v) => {
+      if (!isPoint(v)) throw new Error(`Coordonnées ${label} invalides.`);
+      return true;
+    })
+    .bail()
+    .customSanitizer((v) => ({ lat: Number(v.lat), lng: Number(v.lng) }));
+
 const rideFields = (optional) => {
   const f = (name) => (optional ? body(name).optional() : body(name));
   return [
     f('lieuDepart').trim().isLength({ min: 2, max: 80 }).withMessage('Indiquez le lieu de départ.'),
     f('lieuArrivee').trim().isLength({ min: 2, max: 80 }).withMessage("Indiquez le lieu d'arrivée."),
+    coordField('coordDepart', 'de départ'),
+    coordField('coordArrivee', "d'arrivée"),
     f('dateDepart')
       .isISO8601()
       .withMessage('Date invalide.')
@@ -98,8 +119,8 @@ const rideFields = (optional) => {
 };
 
 ridesRouter.post('/', requireAuth(), validate(...rideFields(false)), async (req, res) => {
-  const { lieuDepart, lieuArrivee, dateDepart, placesTotales, prix, dureeMinutes = null, vehicule = '', details = '' } = req.body;
-  const ride = await Ride.create({ conducteur: req.user._id, lieuDepart, lieuArrivee, dateDepart, placesTotales, placesDisponibles: placesTotales, prix, dureeMinutes, vehicule, details });
+  const { lieuDepart, lieuArrivee, coordDepart = null, coordArrivee = null, dateDepart, placesTotales, prix, dureeMinutes = null, vehicule = '', details = '' } = req.body;
+  const ride = await Ride.create({ conducteur: req.user._id, lieuDepart, lieuArrivee, coordDepart, coordArrivee, dateDepart, placesTotales, placesDisponibles: placesTotales, prix, dureeMinutes, vehicule, details });
   res.status(201).json({ trajet: ride });
 });
 
@@ -118,7 +139,7 @@ ridesRouter.patch('/:id', requireAuth(), validate(param('id').isMongoId(), ...ri
     if (req.body.placesTotales !== undefined && req.body.placesTotales < booked) {
       throw badRequest('VALIDATION', 'Certains champs sont invalides.', { placesTotales: `${booked} places sont déjà réservées.` });
     }
-    for (const k of ['lieuDepart', 'lieuArrivee', 'dateDepart', 'prix', 'dureeMinutes', 'vehicule', 'details']) if (req.body[k] !== undefined) r[k] = req.body[k];
+    for (const k of ['lieuDepart', 'lieuArrivee', 'coordDepart', 'coordArrivee', 'dateDepart', 'prix', 'dureeMinutes', 'vehicule', 'details']) if (req.body[k] !== undefined) r[k] = req.body[k];
     if (req.body.placesTotales !== undefined) {
       r.placesTotales = req.body.placesTotales;
       r.placesDisponibles = req.body.placesTotales - booked;

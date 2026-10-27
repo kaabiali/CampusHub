@@ -23,6 +23,7 @@ import { UserAvatar } from '@/components/UserAvatar';
 import { RatingBadge, StarRating } from '@/components/StarRating';
 import { RideTimeline } from '@/components/rides/RideCard';
 import { RideForm } from '@/components/rides/RideForm';
+import { RideMap } from '@/components/map/RideMap';
 import { useReserve } from '@/hooks/useReserve';
 import { del, get, post } from '@/lib/api';
 import { dayLong, fullName, plural, price, shortName } from '@/lib/format';
@@ -167,6 +168,14 @@ export default function TrajetDetail() {
           <section className="flex flex-col gap-5 rounded-lg border bg-card p-5 shadow-xs sm:p-6">
             <p className="text-sm font-medium text-muted-foreground">{dayLong(ride.dateDepart)}</p>
             <RideTimeline ride={ride} size="lg" />
+            <RideMap
+              className="border-t pt-4"
+              depart={ride.coordDepart}
+              arrivee={ride.coordArrivee}
+              departLabel={ride.lieuDepart}
+              arriveeLabel={ride.lieuArrivee}
+              height={280}
+            />
             {ride.details && (
               <p className="flex items-start gap-2 border-t pt-4 text-sm text-foreground-2">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-primary" /> {ride.details}

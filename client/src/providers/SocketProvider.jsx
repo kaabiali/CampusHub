@@ -47,6 +47,8 @@ export function SocketProvider({ children }) {
       if (wasDisconnected) {
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
         queryClient.invalidateQueries({ queryKey: ['thread'] });
+        queryClient.invalidateQueries({ queryKey: ['groupe-messages'] });
+        queryClient.invalidateQueries({ queryKey: ['groupe'] });
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       }
     });
@@ -77,6 +79,22 @@ export function SocketProvider({ children }) {
       queryClient.setQueryData(['thread', String(par)], (t) =>
         t ? { ...t, messages: t.messages.map((m) => (String(m.expediteur) === me ? { ...m, lu: true } : m)) } : t,
       );
+    });
+
+    s.on('groupe:message', (message) => {
+      queryClient.setQueryData(['groupe-messages', String(message.groupe)], (t) => mergeMessage(t, message));
+    });
+
+    s.on('groupe:reunion', ({ groupeId, nom, reunion }) => {
+      const gid = String(groupeId);
+      queryClient.invalidateQueries({ queryKey: ['groupe', gid] });
+      // Members elsewhere in the app get a one-click shortcut to the room.
+      if (reunion && pathRef.current !== `/groupes/${gid}`) {
+        toast(`Réunion lancée dans « ${nom} »`, {
+          description: reunion.sujet,
+          action: { label: 'Rejoindre', onClick: () => window.open(reunion.url, '_blank', 'noopener,noreferrer') },
+        });
+      }
     });
 
     s.on('notification:new', (n) => {

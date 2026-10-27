@@ -28,6 +28,18 @@ const documentSchema = new mongoose.Schema({
   dateDepot: { type: Date, default: Date.now },
 });
 
+const meetingSchema = new mongoose.Schema(
+  {
+    sujet: { type: String, trim: true, maxlength: 120, default: 'Réunion du groupe' },
+    // Opaque room name, generated server-side so the link can't be guessed from the group id.
+    salon: { type: String, required: true },
+    url: { type: String, required: true },
+    demarrePar: { type: ObjectId, ref: 'Utilisateur', required: true },
+    demarreeLe: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const groupSchema = new mongoose.Schema(
   {
     nom: { type: String, required: true, trim: true, maxlength: 80 },
@@ -38,6 +50,7 @@ const groupSchema = new mongoose.Schema(
     membres: { type: [memberSchema], default: [] },
     seances: { type: [sessionSchema], default: [] },
     documents: { type: [documentSchema], default: [] },
+    reunion: { type: meetingSchema, default: null },
     recherche: { type: String, select: false },
   },
   { timestamps: { createdAt: 'dateCreation', updatedAt: 'dateMaj' } },

@@ -12,6 +12,7 @@
     "db:init": "docker compose exec mongo mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }\"",
     "seed": "npm run seed -w server --",
     "check:invariants": "npm run check:invariants -w server --",
+    "coords:backfill": "npm run coords:backfill -w server",
     "uploads:gc": "npm run uploads:gc -w server --",
     "db:backup": "node scripts/backup.mjs backup",
     "db:restore": "node scripts/backup.mjs restore",
