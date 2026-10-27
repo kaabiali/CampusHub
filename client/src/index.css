@@ -193,6 +193,72 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Leaflet / OpenStreetMap: keep the map inside our surfaces and match the theme. */
+.leaflet-container {
+  background: var(--muted);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  z-index: 0;
+}
+.leaflet-container a {
+  color: var(--primary);
+}
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--card) 86%, transparent) !important;
+  color: var(--muted-foreground) !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--muted-foreground) !important;
+}
+.leaflet-bar {
+  border-color: var(--border) !important;
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--card);
+  color: var(--foreground);
+  border-bottom-color: var(--border);
+}
+.leaflet-bar a:hover {
+  background: var(--accent);
+}
+.leaflet-tooltip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+}
+.leaflet-tooltip-top::before {
+  border-top-color: var(--border);
+}
+.ch-map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+}
+.ch-map-pin__dot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 3px solid var(--card);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+}
+.ch-map-pin__dot--start {
+  background: var(--primary);
+}
+.ch-map-pin__dot--end {
+  background: var(--success);
+}
+/* OSM tiles ship light only: invert them in dark mode so labels stay readable. */
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.7);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;

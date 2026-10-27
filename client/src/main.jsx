@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import '@fontsource-variable/figtree';
 import '@fontsource-variable/geist-mono';
+import 'leaflet/dist/leaflet.css';
 import './index.css';
 import { queryClient } from '@/lib/queryClient';
 import { router } from '@/router';

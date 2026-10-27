@@ -49,8 +49,8 @@ test('inscription, vérification, profil puis publication d’un livre', async (
   await sheet.getByRole('button', { name: 'Appliquer' }).click();
   await expect(sheet.getByLabel('Votre prix (DT)')).not.toHaveValue('');
   await sheet.getByRole('button', { name: 'Publier', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Probabilités, recueil d’exercices' })).toBeVisible();
-  await expect(page.getByText(/fourchette conseillée|prix conseillé/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Probabilités, recueil d’exercices' }).first()).toBeVisible();
+  await expect(page.getByText(/fourchette conseillée|prix conseillé/).first()).toBeVisible();
 });
 
 test('un étudiant réserve un trajet et écrit au conducteur, qui reçoit le message en direct', async ({ browser }) => {
@@ -64,8 +64,9 @@ test('un étudiant réserve un trajet et écrit au conducteur, qui reçoit le me
 
   await passenger.goto('/covoiturage?depart=sidi');
   const card = passenger.locator('article').filter({ hasText: 'Sidi Bou Saïd' }).filter({ hasText: 'Nour Hammami' });
+  await expect(card).toBeVisible();
   const reserve = card.getByRole('button', { name: 'Réserver' });
-  if (await reserve.isVisible()) {
+  if (await reserve.count()) {
     await reserve.click();
     await expect(passenger.getByText('Place réservée. Le conducteur est prévenu.')).toBeVisible();
   }
@@ -81,8 +82,8 @@ test('un étudiant réserve un trajet et écrit au conducteur, qui reçoit le me
   await expect(driver.getByText('Message de Lina')).toBeVisible();
   await driver.goto('/messages');
   await driver.getByRole('link', { name: /Lina Ferchichi/ }).click();
-  await expect(driver.getByText(text)).toBeVisible();
-  await expect(passenger.getByText('Lu', { exact: true })).toBeVisible();
+  await expect(driver.getByRole('region', { name: /Conversation avec Lina/ }).getByText(text)).toBeVisible();
+  await expect(passenger.getByText(text).locator('..').getByText('Lu', { exact: true })).toBeVisible();
   await passengerContext.close();
   await driverContext.close();
 });

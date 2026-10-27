@@ -7,6 +7,7 @@
     "start": "node --env-file-if-exists=.env src/index.js",
     "test": "vitest run",
     "seed": "node --env-file-if-exists=.env scripts/seed.js",
+    "coords:backfill": "node --env-file-if-exists=.env scripts/backfill-ride-coords.js",
     "check:invariants": "node --env-file-if-exists=.env scripts/invariants.js",
     "uploads:gc": "node --env-file-if-exists=.env scripts/uploads-gc.js"
   },

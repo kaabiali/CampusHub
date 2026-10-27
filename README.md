@@ -58,6 +58,7 @@ Seules les adresses `@campus.tn` peuvent s’inscrire. Le lien de vérification 
 | `npm run ml:test` | Tests pytest du service ML (dans le conteneur) |
 | `npm run ml:train` | Réentraîne les modèles et redémarre le service ML |
 | `npm run check:invariants` | Vérifie les compteurs dérivés (places, inscrits, membres) ; `-- --fix` les corrige |
+| `npm run coords:backfill` | Ajoute les coordonnées de carte aux trajets de démonstration qui n’en ont pas |
 | `npm run uploads:gc` | Liste les fichiers téléversés orphelins ; `-- --delete` les supprime |
 | `npm run db:backup` | Sauvegarde `mongodump` dans `backups/` |
 | `npm run db:restore -- backups/<fichier>` | Restaure une sauvegarde (demande confirmation, remplace les données) |
@@ -72,9 +73,10 @@ e2e/      Playwright
 ```
 
 - **Concurrence** : réservations de trajets en transaction avec `$inc` conditionnel ; inscriptions aux événements et adhésions aux groupes par mise à jour conditionnelle atomique ; messages dédoublonnés par `clientId`.
-- **Temps réel** : messages, accusés de lecture et notifications via Socket.io ; une session révoquée (`jetonVersion`) coupe aussi le socket.
+- **Temps réel** : messages, accusés de lecture et notifications via Socket.io ; une session révoquée (`jetonVersion`) coupe aussi le socket. Les groupes d'étude ont leur propre discussion et peuvent ouvrir une visioconférence réservée aux membres.
 - **Rappels** : un job toutes les 15 min clôt les trajets passés et envoie les rappels d’événements (envoi unique garanti par `cleDedup`).
 - **Heure** : toutes les dates sont affichées et saisies à l’heure de Tunis (UTC+1).
+- **Carte** : covoiturage sur Leaflet/OpenStreetMap ; recherche d’adresses via un proxy Nominatim côté API (cache 7 jours, 1 requête/seconde), coordonnées facultatives stockées avec le trajet.
 
 ## Modèles ML
 

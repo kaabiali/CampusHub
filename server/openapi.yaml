@@ -428,6 +428,47 @@ paths:
         '403': { $ref: '#/components/responses/Erreur' }
         '404': { $ref: '#/components/responses/Erreur' }
         '409': { $ref: '#/components/responses/Erreur' }
+  /geo/search:
+    get:
+      tags: [Covoiturage]
+      summary: "Rechercher un lieu pour la carte (proxy Nominatim, mis en cache 7 jours)"
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 3, maxLength: 120 } }
+      responses:
+        '200':
+          description: "Jusqu’à 5 lieux en Tunisie"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultats:
+                    type: array
+                    items: { $ref: '#/components/schemas/LieuCarte' }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+        '502': { $ref: '#/components/responses/Erreur' }
+        '504': { $ref: '#/components/responses/Erreur' }
+  /geo/reverse:
+    get:
+      tags: [Covoiturage]
+      summary: "Nommer un point de la carte (géocodage inverse)"
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: lng, in: query, required: true, schema: { type: number, minimum: -180, maximum: 180 } }
+      responses:
+        '200':
+          description: "Lieu le plus proche du point"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LieuCarte' }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+        '429': { $ref: '#/components/responses/Erreur' }
+        '502': { $ref: '#/components/responses/Erreur' }
+        '504': { $ref: '#/components/responses/Erreur' }
   /groupes:
     get:
       tags: [Groupes]
@@ -466,7 +507,7 @@ paths:
       - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
     get:
       tags: [Groupes]
-      summary: "Détail d’un groupe (documents réservés aux membres)"
+      summary: "Détail d'un groupe (documents et réunion réservés aux membres)"
       responses:
         '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
         '401': { $ref: '#/components/responses/Erreur' }
@@ -598,6 +639,69 @@ paths:
         '403': { $ref: '#/components/responses/Erreur' }
         '404': { $ref: '#/components/responses/Erreur' }
         '409': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/messages:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    get:
+      tags: [Groupes]
+      summary: "Messages du groupe (membres uniquement, pagination par date)"
+      parameters:
+        - { name: avant, in: query, schema: { type: string, format: date-time } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 30 } }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    post:
+      tags: [Groupes]
+      summary: "Écrire dans la messagerie du groupe (membres uniquement)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contenu, clientId]
+              properties:
+                contenu: { type: string, minLength: 1, maxLength: 2000 }
+                clientId: { type: string, maxLength: 64, description: "Identifiant généré par le client, pour dédoublonner les renvois." }
+      responses:
+        '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '200': { description: Message déjà enregistré (même clientId), content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+  /groupes/{id}/reunion:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, pattern: '^[a-f0-9]{24}$' } }
+    post:
+      tags: [Groupes]
+      summary: "Ouvrir une visioconférence pour le groupe (membres uniquement)"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sujet: { type: string, maxLength: 120 }
+      responses:
+        '201': { description: Réunion créée, content: { application/json: { schema: { type: object } } } }
+        '200': { description: Une réunion est déjà ouverte, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
+    delete:
+      tags: [Groupes]
+      summary: "Terminer la réunion (organisateur ou créateur du groupe)"
+      responses:
+        '204': { description: Effectué }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '404': { $ref: '#/components/responses/Erreur' }
   /clubs:
     get:
       tags: [Événements]
@@ -1123,12 +1227,36 @@ components:
       properties:
         lieuDepart: { type: string }
         lieuArrivee: { type: string }
+        coordDepart:
+          description: "Position du départ sur la carte (null si non renseignée)."
+          oneOf:
+            - { $ref: '#/components/schemas/PointCarte' }
+            - { type: 'null' }
+        coordArrivee:
+          description: "Position de l’arrivée sur la carte (null si non renseignée)."
+          oneOf:
+            - { $ref: '#/components/schemas/PointCarte' }
+            - { type: 'null' }
         dateDepart: { type: string, format: date-time }
         dureeMinutes: { type: integer }
         placesTotales: { type: integer }
         prix: { type: number }
         vehicule: { type: string }
         details: { type: string }
+    PointCarte:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat: { type: number, minimum: -90, maximum: 90 }
+        lng: { type: number, minimum: -180, maximum: 180 }
+    LieuCarte:
+      type: object
+      required: [label, lat, lng]
+      properties:
+        label: { type: string, description: "Libellé court affiché dans le formulaire" }
+        detail: { type: string, description: "Adresse complète renvoyée par Nominatim" }
+        lat: { type: number }
+        lng: { type: number }
     Reservation:
       type: object
       properties:

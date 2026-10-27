@@ -3,11 +3,22 @@ import { foldText } from '../lib/text.js';
 
 export const STATUTS_TRAJET = ['OUVERT', 'COMPLET', 'ANNULE', 'TERMINE'];
 
+// Optional map position; labels stay in lieuDepart/lieuArrivee so old rides and text search keep working.
+const pointSchema = new mongoose.Schema(
+  {
+    lat: { type: Number, required: true, min: -90, max: 90 },
+    lng: { type: Number, required: true, min: -180, max: 180 },
+  },
+  { _id: false },
+);
+
 const rideSchema = new mongoose.Schema(
   {
     conducteur: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur', required: true, index: true },
     lieuDepart: { type: String, required: true, trim: true, maxlength: 80 },
     lieuArrivee: { type: String, required: true, trim: true, maxlength: 80 },
+    coordDepart: { type: pointSchema, default: null },
+    coordArrivee: { type: pointSchema, default: null },
     dateDepart: { type: Date, required: true },
     dureeMinutes: { type: Number, min: 5, max: 240, default: null },
     placesTotales: { type: Number, required: true, min: 1, max: 6 },

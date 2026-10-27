@@ -1,7 +1,9 @@
 import { Router } from 'express';
+import { randomBytes } from 'node:crypto';
 import { body, matchedData, param, query } from 'express-validator';
 import { join } from 'node:path';
 import { Group } from '../models/Group.js';
+import { GroupMessage } from '../models/GroupMessage.js';
 import { publicUserFields } from '../models/User.js';
 import { requireAuth } from '../lib/auth.js';
 import { validate } from '../lib/validate.js';
@@ -9,6 +11,7 @@ import { badRequest, conflict, forbidden, notFound } from '../lib/errors.js';
 import { searchFilter } from '../lib/text.js';
 import { invalidateRecommendations } from '../lib/recommend.js';
 import { pdfUpload, publicUrl, removeUpload, uploadsRoot } from '../lib/upload.js';
+import { emitToUser } from '../lib/realtime.js';
 
 export const groupsRouter = Router();
 
@@ -55,7 +58,11 @@ groupsRouter.get('/mes-groupes', requireAuth(), async (req, res) => {
 });
 
 groupsRouter.get('/:id', requireAuth(), validate(param('id').isMongoId()), async (req, res) => {
-  const group = await Group.findById(req.params.id).populate('membres.utilisateur', publicUserFields).populate('documents.deposePar', 'prenom nom').lean();
+  const group = await Group.findById(req.params.id)
+    .populate('membres.utilisateur', publicUserFields)
+    .populate('documents.deposePar', 'prenom nom')
+    .populate('reunion.demarrePar', 'prenom nom photoUrl')
+    .lean();
   if (!group) throw notFound('Groupe introuvable.');
   const member = isMember(group, req.user._id);
   const now = Date.now();
@@ -68,6 +75,8 @@ groupsRouter.get('/:id', requireAuth(), validate(param('id').isMongoId()), async
       // Shared files are for members only; others just see how many there are.
       documents: member ? group.documents.sort((a, b) => new Date(b.dateDepot) - new Date(a.dateDepot)) : [],
       nbDocuments: group.documents.length,
+      // The meeting link is never exposed to non-members.
+      reunion: member ? (group.reunion ?? null) : null,
     },
   });
 });
@@ -108,8 +117,9 @@ groupsRouter.patch('/:id', requireAuth(), validate(param('id').isMongoId(), ...g
 groupsRouter.delete('/:id', requireAuth(), validate(param('id').isMongoId()), async (req, res) => {
   const group = await loadGroup(req);
   if (!isCreator(group, req.user._id) && req.user.role !== 'ADMIN') throw forbidden('PAS_CREATEUR', 'Seul le créateur peut supprimer le groupe.');
+  const groupId = group._id;
   await group.deleteOne();
-  await Promise.all(group.documents.map((d) => removeUpload(d.url)));
+  await Promise.all([...group.documents.map((d) => removeUpload(d.url)), GroupMessage.deleteMany({ groupe: groupId })]);
   res.status(204).end();
 });
 
@@ -145,6 +155,93 @@ async function loadForMember(req) {
   if (!isMember(group, req.user._id)) throw forbidden('PAS_MEMBRE', 'Rejoignez le groupe pour participer.');
   return group;
 }
+
+const emitToMembers = (group, event, payload) => {
+  for (const member of group.membres) emitToUser(member.utilisateur, event, payload);
+};
+
+const liveAuthor = (user) => ({ _id: user._id, prenom: user.prenom, nom: user.nom, photoUrl: user.photoUrl });
+
+groupsRouter.get(
+  '/:id/messages',
+  requireAuth(),
+  validate(param('id').isMongoId(), query('avant').optional().isISO8601().toDate(), query('limit').optional().isInt({ min: 1, max: 50 }).toInt()),
+  async (req, res) => {
+    const group = await loadForMember(req);
+    const { avant, limit = 30 } = matchedData(req, { locations: ['query'] });
+    const filter = { groupe: group._id };
+    if (avant) filter.dateEnvoi = { $lt: avant };
+    const page = await GroupMessage.find(filter).sort({ dateEnvoi: -1 }).limit(limit + 1).populate('auteur', publicUserFields).lean();
+    res.json({ messages: page.slice(0, limit).reverse(), plusAnciens: page.length > limit });
+  },
+);
+
+groupsRouter.post(
+  '/:id/messages',
+  requireAuth(),
+  validate(
+    param('id').isMongoId(),
+    body('contenu').isString().withMessage('Message invalide.').bail().trim().isLength({ min: 1, max: 2000 }).withMessage('Le message doit contenir entre 1 et 2000 caractères.'),
+    body('clientId').isString().withMessage('Identifiant de message manquant.').bail().trim().isLength({ min: 1, max: 64 }).withMessage('Identifiant de message invalide.'),
+  ),
+  async (req, res) => {
+    const group = await loadForMember(req);
+    const { contenu, clientId } = req.body;
+    const existing = await GroupMessage.findOne({ groupe: group._id, auteur: req.user._id, clientId }).populate('auteur', publicUserFields).lean();
+    if (existing) return res.status(200).json({ message: existing, duplicate: true });
+
+    let message;
+    try {
+      message = (await GroupMessage.create({ groupe: group._id, auteur: req.user._id, contenu, clientId })).toObject();
+    } catch (err) {
+      // A concurrent resend with the same clientId won the race; return the stored message.
+      if (err.code === 11000) {
+        const duplicate = await GroupMessage.findOne({ groupe: group._id, auteur: req.user._id, clientId }).populate('auteur', publicUserFields).lean();
+        return res.status(200).json({ message: duplicate, duplicate: true });
+      }
+      throw err;
+    }
+    // The live payload carries the author so other members can render it without another request.
+    const live = { ...message, auteur: liveAuthor(req.user) };
+    emitToMembers(group, 'groupe:message', live);
+    res.status(201).json({ message: live });
+  },
+);
+
+groupsRouter.post(
+  '/:id/reunion',
+  requireAuth(),
+  validate(param('id').isMongoId(), body('sujet').optional({ values: 'falsy' }).isString().trim().isLength({ max: 120 }).withMessage('120 caractères maximum.')),
+  async (req, res) => {
+    const group = await loadForMember(req);
+    if (group.reunion) {
+      // Another member opened the room first: everyone joins the same meeting.
+      await group.populate('reunion.demarrePar', 'prenom nom photoUrl');
+      return res.status(200).json({ reunion: group.reunion });
+    }
+
+    const sujet = String(req.body?.sujet || '').trim() || 'Réunion du groupe';
+    const salon = `CampusHub-${group._id.toString().slice(-6)}-${randomBytes(12).toString('hex')}`;
+    group.reunion = { sujet, salon, url: `https://meet.jit.si/${salon}`, demarrePar: req.user._id, demarreeLe: new Date() };
+    await group.save();
+
+    const live = { ...group.reunion.toObject(), demarrePar: liveAuthor(req.user) };
+    emitToMembers(group, 'groupe:reunion', { groupeId: String(group._id), nom: group.nom, reunion: live });
+    res.status(201).json({ reunion: live });
+  },
+);
+
+groupsRouter.delete('/:id/reunion', requireAuth(), validate(param('id').isMongoId()), async (req, res) => {
+  const group = await loadForMember(req);
+  if (!group.reunion) throw notFound('Aucune réunion en cours.');
+  if (String(group.reunion.demarrePar) !== String(req.user._id) && !isCreator(group, req.user._id)) {
+    throw forbidden('PAS_AUTEUR', 'Seul l’organisateur de la réunion ou le créateur du groupe peut la terminer.');
+  }
+  group.reunion = null;
+  await group.save();
+  emitToMembers(group, 'groupe:reunion', { groupeId: String(group._id), nom: group.nom, reunion: null });
+  res.status(204).end();
+});
 
 groupsRouter.post(
   '/:id/seances',
