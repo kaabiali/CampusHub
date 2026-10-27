@@ -23,5 +23,7 @@ export const config = {
   smtpPort: Number(env.SMTP_PORT) || 1025,
   mailFrom: env.MAIL_FROM || 'CampusHub <no-reply@campus.tn>',
   emailDomain: (env.EMAIL_DOMAIN || 'campus.tn').toLowerCase(),
+  // Public OAuth client ID from Google Cloud Console; empty disables Google sign-in.
+  googleClientId: env.GOOGLE_CLIENT_ID || '',
   uploadDir: env.NODE_ENV === 'test' ? pathToFileURL(join(tmpdir(), 'campushub-test-uploads/')) : new URL('../uploads/', import.meta.url),
 };

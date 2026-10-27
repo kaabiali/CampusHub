@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     nom: { type: String, required: true, trim: true, maxlength: 50 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     motDePasseHache: { type: String, required: true },
+    // Google account subject ("sub"), set when the account is created or linked through Google.
+    googleId: { type: String, default: null, index: true },
     role: { type: String, enum: ['ETUDIANT', 'ADMIN'], default: 'ETUDIANT' },
     filiere: { type: String, trim: true, maxlength: 80, default: '' },
     niveau: { type: String, trim: true, maxlength: 40, default: '' },
@@ -29,6 +31,7 @@ const userSchema = new mongoose.Schema(
     toJSON: {
       transform(doc, ret) {
         delete ret.motDePasseHache;
+        delete ret.googleId;
         delete ret.jetonVersion;
         delete ret.jetonVerification;
         delete ret.jetonReset;

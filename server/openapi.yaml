@@ -44,6 +44,22 @@ paths:
         '201': { description: Succès, content: { application/json: { schema: { type: object } } } }
         '400': { $ref: '#/components/responses/Erreur' }
         '429': { $ref: '#/components/responses/Erreur' }
+  /auth/google:
+    post:
+      tags: [Authentification]
+      summary: "Se connecter ou créer un compte avec un compte Google vérifié"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GoogleConnexion' }
+      responses:
+        '200': { description: Succès, content: { application/json: { schema: { type: object } } } }
+        '400': { $ref: '#/components/responses/Erreur' }
+        '401': { $ref: '#/components/responses/Erreur' }
+        '403': { $ref: '#/components/responses/Erreur' }
+        '503': { $ref: '#/components/responses/Erreur' }
   /auth/connexion:
     post:
       tags: [Authentification]
@@ -1157,6 +1173,11 @@ components:
       properties:
         email: { type: string, format: email }
         motDePasse: { type: string, format: password }
+    GoogleConnexion:
+      type: object
+      required: [credential]
+      properties:
+        credential: { type: string, description: "ID token renvoyé par Google Identity Services" }
     Jeton:
       type: object
       required: [jeton]

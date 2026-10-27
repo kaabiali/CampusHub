@@ -16,6 +16,7 @@ Plan d’implémentation : [`docs/PLAN.md`](docs/PLAN.md) · visualisation : `vi
 ```sh
 npm install
 cp server/.env.example server/.env   # puis changez JWT_SECRET
+cp client/.env.example client/.env   # optionnel : connexion Google
 npm run dev                          # Docker + API + Vite
 npm run seed                         # données de démonstration (additif, idempotent)
 ```
@@ -29,6 +30,15 @@ npm run seed                         # données de démonstration (additif, idem
 | Service ML | http://localhost:5001/health |
 
 Au premier lancement, si l’API refuse de démarrer avec « MongoDB is not running as a replica set », lancez `npm run db:init`.
+
+## Connexion avec Google (optionnelle)
+
+1. Dans Google Cloud Console, créez un **ID client OAuth** de type *Application Web*.
+2. Ajoutez `http://localhost:5173` (et le domaine de production) aux **origines JavaScript autorisées**.
+3. Renseignez le même identifiant dans `server/.env` (`GOOGLE_CLIENT_ID`) et `client/.env` (`VITE_GOOGLE_CLIENT_ID`).
+4. Redémarrez l’API et Vite.
+
+Seules les adresses **`@campus.tn` vérifiées** sont acceptées à l’inscription par e-mail ; la connexion Google accepte **tout compte Google vérifié** (Gmail inclus) et lie automatiquement un compte existant avec la même adresse. Sans identifiant configuré, le bouton reste visible mais affiche un message d’information.
 
 ## Comptes de démonstration
 

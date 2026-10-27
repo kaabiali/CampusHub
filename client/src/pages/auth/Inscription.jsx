@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordInput';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { post } from '@/lib/api';
 import { FILIERES, NIVEAUX } from '@/lib/constants';
 import { useAuth } from '@/providers/AuthProvider';
@@ -62,6 +63,17 @@ export default function Inscription() {
         }}
       >
         <FormError error={signup.error} />
+        <GoogleButton
+          onSuccess={(utilisateur) => {
+            setUser(utilisateur);
+            navigate('/accueil', { replace: true });
+          }}
+        />
+        <div className="flex items-center gap-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <span className="h-px flex-1 bg-border" />
+          ou
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Prénom" error={server.prenom}>
             <Input autoComplete="given-name" value={form.prenom} onChange={set('prenom')} required autoFocus />

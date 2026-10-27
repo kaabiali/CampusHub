@@ -36,7 +36,7 @@ export function AuthLayout() {
         </div>
         <p className="relative flex items-center gap-2 text-sm text-white/70">
           <ShieldCheck className="size-4 text-mint" />
-          Inscription réservée aux adresses universitaires @campus.tn
+          Inscription e-mail réservée aux adresses universitaires @campus.tn
         </p>
       </aside>
       <main className="flex flex-col px-5 py-8 sm:px-10">

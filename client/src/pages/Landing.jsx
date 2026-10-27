@@ -475,7 +475,7 @@ export default function Landing() {
         <div className="rounded-md bg-ink px-6 py-14 text-center text-white sm:py-16">
           <Eyebrow onDark>C’est parti</Eyebrow>
           <h2 className="mt-3.5 text-[28px] font-semibold sm:text-[32px]">Rejoignez CampusHub avec votre e-mail universitaire</h2>
-          <p className="mx-auto mt-4 max-w-[40em] text-[#e6e6e6]">L’inscription est réservée aux adresses @campus.tn et prend moins d’une minute.</p>
+          <p className="mx-auto mt-4 max-w-[40em] text-[#e6e6e6]">Inscription e-mail réservée aux adresses @campus.tn, ou connexion avec un compte Google.</p>
           <Button asChild variant="brand" size="xl" className="mt-7">
             <Link to={signup}>
               {user ? 'Ouvrir CampusHub' : 'Créer un compte'} <ArrowRight />

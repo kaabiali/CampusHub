@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Field } from '@/components/Field';
 import { FormError } from '@/components/FormError';
 import { PasswordInput } from '@/components/PasswordInput';
+import { GoogleButton } from '@/components/auth/GoogleButton';
 import { safeReturn } from '@/components/layout/guards';
 import { post } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
@@ -46,6 +47,17 @@ export default function Connexion() {
         noValidate
       >
         <FormError error={login.error} />
+        <GoogleButton
+          onSuccess={(utilisateur) => {
+            setUser(utilisateur);
+            navigate(safeReturn(params.get('retour')), { replace: true });
+          }}
+        />
+        <div className="flex items-center gap-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <span className="h-px flex-1 bg-border" />
+          ou
+          <span className="h-px flex-1 bg-border" />
+        </div>
         <Field label="E-mail universitaire" error={champs.email}>
           <Input type="email" autoComplete="email" placeholder="prenom.nom@campus.tn" value={form.email} onChange={set('email')} required autoFocus />
         </Field>

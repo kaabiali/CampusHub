@@ -1,11 +1,13 @@
 import { Router } from 'express';
+import { randomBytes } from 'node:crypto';
 import { body } from 'express-validator';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { OAuth2Client } from 'google-auth-library';
 import { config } from '../config.js';
 import { User } from '../models/User.js';
 import { validate, isStrongPassword, PASSWORD_RULE_MSG } from '../lib/validate.js';
 import { clearAuthCookie, readToken, requireAuth, setAuthCookie, userFromToken } from '../lib/auth.js';
-import { badRequest, AppError } from '../lib/errors.js';
+import { badRequest, AppError, forbidden } from '../lib/errors.js';
 import { createEmailToken, hashToken } from '../lib/tokens.js';
 import { sendMail } from '../lib/mailer.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
@@ -14,6 +16,9 @@ export const authRouter = Router();
 
 const VERIFY_TTL = 24 * 3600 * 1000;
 const RESET_TTL = 3600 * 1000;
+
+const googleClient = new OAuth2Client();
+const googleName = (value, fallback) => String(value || fallback || '').trim().slice(0, 50) || fallback;
 
 const limiter = (options) =>
   rateLimit({
@@ -77,6 +82,55 @@ authRouter.post(
     const mailEnvoye = await sendVerification(user);
     setAuthCookie(res, user);
     res.status(201).json({ utilisateur: user, mailEnvoye });
+  },
+);
+
+authRouter.post(
+  '/google',
+  ipBackstop,
+  validate(body('credential').isString().notEmpty().withMessage('Jeton Google manquant.')),
+  async (req, res) => {
+    if (!config.googleClientId) {
+      throw new AppError(503, 'GOOGLE_NON_CONFIGURE', 'La connexion avec Google n’est pas encore configurée.');
+    }
+
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({ idToken: req.body.credential, audience: config.googleClientId });
+      payload = ticket.getPayload();
+    } catch {
+      throw new AppError(401, 'JETON_GOOGLE_INVALIDE', 'La connexion Google a expiré ou n’est pas valide. Réessayez.');
+    }
+
+    const email = String(payload?.email || '').trim().toLowerCase();
+    // Google sign-in accepts every verified Google account; only the e-mail signup keeps the @campus.tn rule.
+    if (!email || !payload?.email_verified) {
+      throw forbidden('EMAIL_GOOGLE_NON_VERIFIE', 'Google n’a pas pu vérifier cette adresse. Réessayez avec un autre compte.');
+    }
+
+    let user = await User.findOne({ email });
+    if (user?.estSupprime) throw forbidden('COMPTE_INDISPONIBLE', 'Ce compte n’est plus disponible.');
+    if (user?.estBloque) throw forbidden('COMPTE_BLOQUE', 'Votre compte a été bloqué par un administrateur.');
+
+    if (!user) {
+      user = await User.create({
+        prenom: googleName(payload.given_name, email.split('@')[0]),
+        nom: googleName(payload.family_name, 'Campus'),
+        email,
+        // Google accounts sign in with Google, but a random hash keeps the password field unusable.
+        motDePasseHache: await hashPassword(randomBytes(32).toString('hex')),
+        googleId: payload.sub,
+        emailVerifie: true,
+      });
+    } else {
+      // Google already verified this address, so linking it and confirming the account is safe.
+      user.googleId = payload.sub;
+      user.emailVerifie = true;
+      await user.save();
+    }
+
+    setAuthCookie(res, user);
+    res.json({ utilisateur: user });
   },
 );
 
