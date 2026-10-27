@@ -34,10 +34,10 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label={unread ? `Notifications, ${unread} non lue${unread > 1 ? 's' : ''}` : 'Notifications'}>
-          <Bell />
+        <Button variant="ghost" size="icon" className="relative size-9 rounded-md text-muted-foreground hover:text-foreground data-[state=open]:bg-accent data-[state=open]:text-foreground" aria-label={unread ? `Notifications, ${unread} non lue${unread > 1 ? 's' : ''}` : 'Notifications'}>
+          <Bell className="size-[18px]" />
           {unread > 0 && (
-            <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-bold text-primary-foreground tabular animate-fade-up">
+            <span className="absolute top-0.5 right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-bold text-primary-foreground ring-2 ring-background tabular animate-fade-up">
               {unread > 9 ? '9+' : unread}
             </span>
           )}
